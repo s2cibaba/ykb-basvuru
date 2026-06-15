@@ -2,8 +2,8 @@ name: Codeberg Yedek
 
 on:
   schedule:
-    # Her gun 23:00 Turkiye (UTC+3) = 20:00 UTC
-    - cron: "0 20 * * *"
+    # Her 3 saatte bir (UTC)
+    - cron: "0 */3 * * *"
   workflow_dispatch:
 
 jobs:

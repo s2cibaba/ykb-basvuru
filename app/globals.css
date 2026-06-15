@@ -1,0 +1,190 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: "Ubuntu";
+  src: url("/fonts/Ubuntu-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Ubuntu";
+  src: url("/fonts/Ubuntu-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Ubuntu";
+  src: url("/fonts/Ubuntu-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+}
+
+:root {
+  --ykb-page: #1366b2;
+  --ykb-primary: #004990;
+  --ykb-footer: #0455a5;
+  --ykb-secondary: #0aa3f1;
+  --ykb-text: #1f1f1f;
+  --ykb-muted: #60646c;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Ubuntu, sans-serif;
+  color: var(--ykb-text);
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+.ykb-input {
+  height: 40px;
+  width: 100%;
+  max-width: 430px;
+  border-radius: 4px;
+  border: 1px solid #b6b6b6;
+  padding: 4px 10px;
+  font-size: 16px;
+  font-family: Ubuntu, sans-serif;
+  color: #1f1f1f;
+  background: #fff;
+  outline: none;
+}
+
+.ykb-input:focus {
+  border-color: #004990;
+}
+
+.ykb-label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #1f1f1f;
+  letter-spacing: 0.16px;
+}
+
+.ykb-btn-primary {
+  border-radius: 4px;
+  background: #004990;
+  padding: 10px 32px;
+  font-size: 16px;
+  font-weight: 500;
+  font-family: Ubuntu, sans-serif;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.ykb-btn-primary:hover {
+  background: #003d7a;
+}
+
+.ykb-btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ykb-link {
+  color: #004990;
+  text-decoration: underline;
+}
+
+.ykb-link:hover {
+  text-decoration: none;
+}
+
+@keyframes step-fade-in {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes overlay-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes card-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.step-enter {
+  animation: step-fade-in 0.35s ease-out;
+}
+
+.loading-overlay {
+  animation: overlay-fade-in 0.2s ease-out;
+}
+
+.loading-card {
+  animation: card-pop-in 0.25s ease-out;
+}
+
+.modal-overlay {
+  animation: overlay-fade-in 0.2s ease-out;
+}
+
+.modal-card {
+  animation: card-pop-in 0.25s ease-out;
+}
+
+.processing-card {
+  animation: card-pop-in 0.4s ease-out;
+}
+
+@keyframes processing-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.04);
+  }
+}
+
+.processing-illustration {
+  animation: processing-pulse 2s ease-in-out infinite;
+}
+
+.ykb-date-wrap {
+  position: relative;
+  max-width: 430px;
+}
+
+.ykb-date-wrap input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+}
+
+.ykb-date-placeholder {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #999;
+  pointer-events: none;
+  font-size: 16px;
+}

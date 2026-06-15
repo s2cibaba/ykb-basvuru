@@ -1,0 +1,9 @@
+node_modules
+.next
+.open-next
+.wrangler
+out
+.env*.local
+.dev.vars
+data/store.json
+*.png

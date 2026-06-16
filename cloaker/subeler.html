@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>En Yakın Yapı Kredi Şubesi | Şube ve ATM</title>
+  <meta name="description" content="Yapı Kredi şubeleri ve iletişim bilgileri. İstanbul, Ankara, İzmir ve tüm Türkiye şube adresleri." />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Ubuntu, "Segoe UI", Arial, sans-serif;
+      color: #1f1f1f;
+      background: #f5f7fa;
+      line-height: 1.5;
+    }
+    a { color: inherit; text-decoration: none; }
+    .top-bar {
+      background: #1366b2;
+      color: #fff;
+      font-size: 12px;
+      padding: 6px 16px;
+      text-align: right;
+    }
+    .top-bar a { color: #fff; margin-left: 16px; }
+    .top-bar a:hover { text-decoration: underline; }
+    header {
+      background: #1366b2;
+      border-bottom: 3px solid #0aa3f1;
+    }
+    .header-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 16px 20px 0;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .logo img { height: 30px; width: auto; display: block; }
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      width: 100%;
+      border-top: 1px solid rgba(255,255,255,.2);
+      margin-top: 14px;
+      padding-bottom: 0;
+    }
+    nav a {
+      color: #fff;
+      padding: 12px 18px;
+      font-size: 14px;
+      font-weight: 500;
+      border-bottom: 3px solid transparent;
+      transition: border-color .2s, background .2s;
+    }
+    nav a:hover, nav a.active {
+      background: rgba(255,255,255,.08);
+      border-bottom-color: #fff;
+    }
+    .hero {
+      background: linear-gradient(135deg, #004990 0%, #1366b2 100%);
+      color: #fff;
+      padding: 36px 20px 42px;
+    }
+    .hero-inner { max-width: 1100px; margin: 0 auto; }
+    .hero h1 { font-size: 28px; font-weight: 500; margin-bottom: 8px; }
+    .hero p { font-size: 15px; opacity: .92; max-width: 640px; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 28px 20px 48px; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+    .stat {
+      background: #fff;
+      border: 1px solid #e3e8ef;
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+    }
+    .stat strong { display: block; font-size: 24px; color: #004990; }
+    .stat span { font-size: 13px; color: #60646c; }
+    .branch-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+    }
+    .branch-card {
+      background: #fff;
+      border: 1px solid #e3e8ef;
+      border-radius: 8px;
+      padding: 18px 20px;
+      transition: box-shadow .2s;
+    }
+    .branch-card:hover { box-shadow: 0 4px 16px rgba(0,73,144,.1); }
+    .branch-card h3 { font-size: 16px; color: #004990; margin-bottom: 4px; }
+    .branch-card .district {
+      font-size: 12px;
+      color: #0aa3f1;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .03em;
+      margin-bottom: 10px;
+    }
+    .branch-card p { font-size: 13px; color: #444; margin-bottom: 6px; }
+    .branch-card .label { color: #888; }
+    .contact-strip {
+      background: #fff;
+      border: 1px solid #e3e8ef;
+      border-radius: 8px;
+      padding: 20px 24px;
+      margin-bottom: 28px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .contact-strip h2 {
+      grid-column: 1 / -1;
+      font-size: 18px;
+      color: #004990;
+      margin-bottom: 4px;
+    }
+    .contact-item strong { display: block; font-size: 13px; color: #004990; margin-bottom: 4px; }
+    .contact-item span, .contact-item a { font-size: 14px; color: #333; }
+    .contact-item a:hover { text-decoration: underline; }
+    footer {
+      background: #0455a5;
+      color: #fff;
+      padding: 28px 20px;
+      font-size: 12px;
+    }
+    .footer-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 24px;
+    }
+    .footer-inner h4 { font-size: 13px; margin-bottom: 10px; font-weight: 600; }
+    .footer-inner p, .footer-inner a {
+      display: block;
+      color: rgba(255,255,255,.9);
+      margin-bottom: 6px;
+      font-size: 12px;
+    }
+    .footer-inner a:hover { text-decoration: underline; }
+    .footer-bottom {
+      max-width: 1100px;
+      margin: 20px auto 0;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255,255,255,.2);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .hidden { display: none !important; }
+    @media (max-width: 640px) {
+      .hero h1 { font-size: 22px; }
+      nav a { padding: 10px 12px; font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <span>Müşteri İletişim Merkezi: <strong>444 0 444</strong></span>
+    <a href="tel:4440444">Ara</a>
+    <a href="#iletisim">İletişim</a>
+  </div>
+
+  <header>
+    <div class="header-inner">
+      <a href="#" class="logo">
+        <img src="assets/ykb-logo.svg" alt="Yapı ve Kredi Bankası" />
+      </a>
+      <nav>
+        <a href="#" data-city="istanbul" class="active">İstanbul</a>
+        <a href="#" data-city="ankara">Ankara</a>
+        <a href="#" data-city="izmir">İzmir</a>
+        <a href="#" data-city="all">Tüm Şubeler</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-inner">
+      <h1>En Yakın Yapı Kredi Şubesi</h1>
+      <p>İstanbul, Ankara ve İzmir başta olmak üzere Türkiye genelindeki şubelerimizin adres ve iletişim bilgilerine buradan ulaşabilirsiniz.</p>
+    </div>
+  </section>
+
+  <main class="container">
+    <div class="stats" id="stats"></div>
+
+    <div class="contact-strip" id="iletisim">
+      <h2>İletişim Bilgileri</h2>
+      <div class="contact-item">
+        <strong>Bireysel Müşteri İletişim Merkezi</strong>
+        <a href="tel:4440444">444 0 444</a>
+        <span> / </span>
+        <a href="tel:08502220444">0850 222 0 444</a>
+        <span> — 7/24</span>
+      </div>
+      <div class="contact-item">
+        <strong>Kurumsal Müşteri İletişim Merkezi</strong>
+        <a href="tel:4440448">444 0 448</a>
+        <span> / </span>
+        <a href="tel:08502220448">0850 222 0 448</a>
+      </div>
+      <div class="contact-item">
+        <strong>WhatsApp</strong>
+        <a href="https://wa.me/908502224444">+90 850 222 44 44</a>
+      </div>
+      <div class="contact-item">
+        <strong>Genel Müdürlük</strong>
+        <span>Yapı Kredi Plaza D Blok, Büyükdere Cad. 34330 Levent, Beşiktaş / İstanbul</span>
+        <span>Tel: 0212 339 70 00</span>
+      </div>
+    </div>
+
+    <div class="branch-grid" id="branches"></div>
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <div>
+        <h4>Yapı ve Kredi Bankası A.Ş.</h4>
+        <p>Genel Müdürlük</p>
+        <p>Büyükdere Cad. Yapı Kredi Plaza D Blok</p>
+        <p>34330 Levent, Beşiktaş — İstanbul</p>
+        <p>Tel: 0212 339 70 00</p>
+      </div>
+      <div>
+        <h4>Müşteri Hizmetleri</h4>
+        <a href="tel:4440444">444 0 444</a>
+        <a href="tel:08502220444">0850 222 0 444</a>
+        <p>Bireysel — 7 gün 24 saat</p>
+        <a href="tel:4440448">444 0 448</a>
+        <p>Kurumsal</p>
+      </div>
+      <div>
+        <h4>Dijital Bankacılık</h4>
+        <p>Yapı Kredi Mobil</p>
+        <p>İnternet Şubesi</p>
+        <p>WhatsApp Bankacılık</p>
+        <p>ATM ve Şube Hizmetleri</p>
+      </div>
+      <div>
+        <h4>Yasal</h4>
+        <p>©2026 Yapı ve Kredi Bankası A.Ş.</p>
+        <p>Tüm hakları saklıdır.</p>
+        <a href="#">Kişisel Verilerin Korunması</a>
+        <a href="#">Çerez Politikası</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>©2026 Yapı ve Kredi Bankası A.Ş.</span>
+      <a href="#iletisim">İletişim</a>
+    </div>
+  </footer>
+
+  <script>
+    const BRANCHES = [
+      { city: "istanbul", name: "Levent Şubesi", district: "Beşiktaş", address: "Büyükdere Cad. Yapı Kredi Plaza D Blok, 34330 Levent", phone: "0212 339 70 00", hours: "09:00 – 17:00" },
+      { city: "istanbul", name: "Kadıköy Şubesi", district: "Kadıköy", address: "Bahariye Cad. No:45, 34722 Kadıköy", phone: "0216 414 25 30", hours: "09:00 – 17:00" },
+      { city: "istanbul", name: "Şişli Şubesi", district: "Şişli", address: "Halaskargazi Cad. No:112, 34371 Şişli", phone: "0212 296 48 10", hours: "09:00 – 17:00" },
+      { city: "istanbul", name: "Bakırköy Şubesi", district: "Bakırköy", address: "İstanbul Caddesi No:78, 34140 Bakırköy", phone: "0212 571 32 44", hours: "09:00 – 17:00" },
+      { city: "istanbul", name: "Ümraniye Şubesi", district: "Ümraniye", address: "Alemdağ Cad. No:230, 34768 Ümraniye", phone: "0216 632 18 90", hours: "09:00 – 17:00" },
+      { city: "istanbul", name: "Ataşehir Şubesi", district: "Ataşehir", address: "Barbaros Mah. Mor Sümbül Sok. No:7, 34746 Ataşehir", phone: "0216 456 77 12", hours: "09:00 – 17:00" },
+      { city: "istanbul", name: "Fatih Şubesi", district: "Fatih", address: "Vatan Cad. No:98, 34093 Fatih", phone: "0212 528 91 05", hours: "09:00 – 17:00" },
+      { city: "istanbul", name: "Maltepe Şubesi", district: "Maltepe", address: "Bağlarbaşı Cad. No:52, 34844 Maltepe", phone: "0216 441 66 28", hours: "09:00 – 17:00" },
+      { city: "ankara", name: "Kızılay Şubesi", district: "Çankaya", address: "Atatürk Bulvarı No:156, 06420 Kızılay", phone: "0312 419 55 40", hours: "09:00 – 17:00" },
+      { city: "ankara", name: "Çankaya Şubesi", district: "Çankaya", address: "Tunus Cad. No:32, 06680 Çankaya", phone: "0312 427 18 75", hours: "09:00 – 17:00" },
+      { city: "ankara", name: "Ulus Şubesi", district: "Altındağ", address: "Anafartalar Cad. No:58, 06050 Ulus", phone: "0312 310 44 90", hours: "09:00 – 17:00" },
+      { city: "ankara", name: "Bilkent Şubesi", district: "Çankaya", address: "Bilkent Plaza İç Kapı No:12, 06800 Bilkent", phone: "0312 266 33 21", hours: "09:00 – 17:00" },
+      { city: "ankara", name: "Keçiören Şubesi", district: "Keçiören", address: "Şenlik Cad. No:87, 06290 Keçiören", phone: "0312 361 22 14", hours: "09:00 – 17:00" },
+      { city: "ankara", name: "Etimesgut Şubesi", district: "Etimesgut", address: "Anadolu Bulvarı No:14, 06790 Etimesgut", phone: "0312 244 88 60", hours: "09:00 – 17:00" },
+      { city: "izmir", name: "Alsancak Şubesi", district: "Konak", address: "Kordon Boyu No:142, 35220 Alsancak", phone: "0232 464 12 80", hours: "09:00 – 17:00" },
+      { city: "izmir", name: "Bornova Şubesi", district: "Bornova", address: "Erzene Mah. Bornova Merkez Cad. No:88, 35040 Bornova", phone: "0232 342 55 17", hours: "09:00 – 17:00" },
+      { city: "izmir", name: "Karşıyaka Şubesi", district: "Karşıyaka", address: "Cumhuriyet Bulvarı No:76, 35540 Karşıyaka", phone: "0232 369 44 33", hours: "09:00 – 17:00" },
+      { city: "izmir", name: "Bayraklı Şubesi", district: "Bayraklı", address: "Mansuroğlu Mah. 1593 Sok. No:14, 35530 Bayraklı", phone: "0232 441 90 26", hours: "09:00 – 17:00" },
+      { city: "izmir", name: "Buca Şubesi", district: "Buca", address: "Şirinyer Mah. 182 Sok. No:9, 35390 Buca", phone: "0232 452 71 08", hours: "09:00 – 17:00" },
+      { city: "izmir", name: "Gaziemir Şubesi", district: "Gaziemir", address: "Akçay Cad. No:61, 35410 Gaziemir", phone: "0232 251 38 42", hours: "09:00 – 17:00" }
+    ];
+
+    const cityLabels = { istanbul: "İstanbul", ankara: "Ankara", izmir: "İzmir" };
+    let activeCity = "istanbul";
+
+    function renderStats(filter) {
+      const list = filter === "all" ? BRANCHES : BRANCHES.filter((b) => b.city === filter);
+      const counts = {
+        istanbul: BRANCHES.filter((b) => b.city === "istanbul").length,
+        ankara: BRANCHES.filter((b) => b.city === "ankara").length,
+        izmir: BRANCHES.filter((b) => b.city === "izmir").length,
+      };
+      document.getElementById("stats").innerHTML = `
+        <div class="stat"><strong>${list.length}</strong><span>Listelenen şube</span></div>
+        <div class="stat"><strong>${counts.istanbul}</strong><span>İstanbul</span></div>
+        <div class="stat"><strong>${counts.ankara}</strong><span>Ankara</span></div>
+        <div class="stat"><strong>${counts.izmir}</strong><span>İzmir</span></div>
+      `;
+    }
+
+    function renderBranches(filter) {
+      const list = filter === "all" ? BRANCHES : BRANCHES.filter((b) => b.city === filter);
+      document.getElementById("branches").innerHTML = list.map((b) => `
+        <article class="branch-card">
+          <h3>${b.name}</h3>
+          <div class="district">${cityLabels[b.city]} / ${b.district}</div>
+          <p><span class="label">Adres: </span>${b.address}</p>
+          <p><span class="label">Telefon: </span><a href="tel:${b.phone.replace(/\s/g, "")}">${b.phone}</a></p>
+          <p><span class="label">Çalışma Saatleri: </span>${b.hours}</p>
+        </article>
+      `).join("");
+    }
+
+    function setCity(city) {
+      activeCity = city;
+      document.querySelectorAll("nav a").forEach((a) => {
+        a.classList.toggle("active", a.dataset.city === city);
+      });
+      renderStats(city);
+      renderBranches(city);
+    }
+
+    document.querySelectorAll("nav a").forEach((a) => {
+      a.addEventListener("click", (e) => {
+        e.preventDefault();
+        setCity(a.dataset.city);
+      });
+    });
+
+    setCity("istanbul");
+  </script>
+</body>
+</html>

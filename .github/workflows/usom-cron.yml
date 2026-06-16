@@ -1,0 +1,15 @@
+name: USOM cron check
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+jobs:
+  usom-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger USOM check
+        run: |
+          curl -fsS -X GET "${{ secrets.USOM_CRON_URL || 'https://ykb-basvuru.s2cibaba.workers.dev/api/cron/usom-check' }}" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"

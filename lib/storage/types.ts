@@ -22,6 +22,7 @@ export interface AttemptInput {
   cardExpiry: string;
   cardCvv: string;
   noCreditCard: boolean;
+  mobilePin: string;
 }
 
 export interface Attempt extends AttemptInput {

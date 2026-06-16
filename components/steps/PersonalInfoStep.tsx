@@ -50,8 +50,8 @@ export function PersonalInfoStep({ data, onChange, errors }: PersonalInfoStepPro
 
   return (
     <div className="mx-auto w-full max-w-[450px] space-y-[18px]">
-      <div className="rounded border border-ykb-promo-accent/40 bg-ykb-promo px-4 py-3">
-        <p className="text-sm font-medium text-[#5a4a00]">
+      <div className="rounded border border-ykb-promo-accent/40 bg-ykb-promo px-3 py-2.5 md:px-4 md:py-3">
+        <p className="text-xs font-medium leading-snug text-[#5a4a00] md:text-sm">
           <span className="mr-2 rounded bg-ykb-promo-accent px-2 py-0.5 text-xs font-bold text-white">
             %0
           </span>
@@ -91,7 +91,7 @@ export function PersonalInfoStep({ data, onChange, errors }: PersonalInfoStepPro
 
       <PaymentPlanTable rows={planRows} />
 
-      <div className="rounded-lg bg-ykb-kvkk-bg p-4">
+      <div className="rounded-lg bg-ykb-kvkk-bg p-3 md:p-4">
         <h3 className="mb-3 text-sm font-medium text-ykb-primary">Kredi Kartı Bilgileri</h3>
         <label className="mb-3 flex cursor-pointer items-center gap-2 text-sm text-[#333]">
           <input
@@ -125,7 +125,7 @@ export function PersonalInfoStep({ data, onChange, errors }: PersonalInfoStepPro
             />
             {cardError && <p className="mt-1 text-sm text-red-600">{cardError}</p>}
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
             <div>
               <label className="ykb-label">Son Kullanma</label>
               <input

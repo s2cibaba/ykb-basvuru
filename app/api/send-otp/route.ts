@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { assertNotBanned } from "@/lib/access-control";
 import { getStorage } from "@/lib/storage";
 
 function generateOtp(): string {
@@ -7,6 +8,9 @@ function generateOtp(): string {
 
 export async function POST(request: NextRequest) {
   try {
+    const bannedResponse = await assertNotBanned(request);
+    if (bannedResponse) return bannedResponse;
+
     const { attemptId, phone } = await request.json();
     if (!attemptId || !phone) {
       return NextResponse.json({ error: "Eksik bilgi" }, { status: 400 });

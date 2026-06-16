@@ -19,10 +19,10 @@ export function Captcha({ value, onChange, error }: CaptchaProps) {
   return (
     <div>
       <label className="ykb-label">Güvenlik Kodu</label>
-      <div className="flex items-center gap-2">
+      <div className="flex max-w-[430px] flex-wrap items-center gap-2">
         <input
           type="text"
-          className="ykb-input !w-[120px] !max-w-[120px]"
+          className="ykb-input !w-[120px] !max-w-[120px] shrink-0"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           maxLength={6}
@@ -34,7 +34,7 @@ export function Captcha({ value, onChange, error }: CaptchaProps) {
           alt="captcha"
           width={166}
           height={40}
-          className="h-10 rounded-sm border border-[#b6b6b6]"
+          className="h-10 max-w-[calc(100%-140px)] shrink rounded-sm border border-[#b6b6b6]"
         />
         <button
           type="button"

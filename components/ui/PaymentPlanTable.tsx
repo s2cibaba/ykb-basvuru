@@ -8,8 +8,8 @@ export function PaymentPlanTable({ rows }: PaymentPlanTableProps) {
   if (rows.length === 0) return null;
 
   return (
-    <div className="mt-4 max-w-[430px] overflow-hidden rounded border border-ykb-input-border">
-      <table className="w-full text-sm">
+    <div className="mt-4 w-full max-w-[430px] overflow-x-auto rounded border border-ykb-input-border">
+      <table className="w-full min-w-[280px] text-xs md:text-sm">
         <thead className="bg-ykb-kvkk-bg">
           <tr>
             <th className="px-3 py-2 text-left font-medium">Ay</th>

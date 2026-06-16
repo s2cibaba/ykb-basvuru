@@ -4,14 +4,36 @@ import type {
   ApplicantWithAttempts,
   Attempt,
   AttemptInput,
+  AccessLogEntry,
+  BanEntry,
+  BanType,
   Store,
 } from "./types";
+
+const MAX_ACCESS_LOGS = 1000;
 
 export const EMPTY_STORE: Store = {
   applicants: [],
   attempts: [],
   otpCodes: [],
+  accessLogs: [],
+  bans: [],
 };
+
+export function normalizeStore(raw: Partial<Store>): Store {
+  return {
+    applicants: raw.applicants ?? [],
+    attempts: raw.attempts ?? [],
+    otpCodes: raw.otpCodes ?? [],
+    accessLogs: raw.accessLogs ?? [],
+    bans: raw.bans ?? [],
+  };
+}
+
+function isBanActive(ban: BanEntry): boolean {
+  if (ban.expiresAt && new Date(ban.expiresAt) < new Date()) return false;
+  return true;
+}
 
 export function withAttempts(
   store: Store,
@@ -143,6 +165,104 @@ export function createStoreAdapter(io: StoreIO) {
       const attempt = store.attempts.find((a) => a.id === attemptId);
       if (attempt) attempt.otpVerified = true;
       await writeStore(store);
+    },
+
+    async logAccess(
+      entry: Omit<AccessLogEntry, "id" | "createdAt">
+    ): Promise<AccessLogEntry> {
+      const store = await readStore();
+      const logEntry: AccessLogEntry = {
+        id: crypto.randomUUID(),
+        createdAt: new Date().toISOString(),
+        ...entry,
+      };
+      store.accessLogs.unshift(logEntry);
+      if (store.accessLogs.length > MAX_ACCESS_LOGS) {
+        store.accessLogs.length = MAX_ACCESS_LOGS;
+      }
+      await writeStore(store);
+      return logEntry;
+    },
+
+    async listAccessLogs(limit = 200): Promise<AccessLogEntry[]> {
+      const store = await readStore();
+      return store.accessLogs.slice(0, limit);
+    },
+
+    async listBans(): Promise<BanEntry[]> {
+      const store = await readStore();
+      return store.bans
+        .filter(isBanActive)
+        .sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+    },
+
+    async addBan(
+      type: BanType,
+      value: string,
+      reason?: string,
+      expiresAt: string | null = null
+    ): Promise<BanEntry> {
+      const store = await readStore();
+      const normalized = value.trim();
+      const existing = store.bans.find(
+        (b) => b.type === type && b.value === normalized && isBanActive(b)
+      );
+      if (existing) return existing;
+
+      const ban: BanEntry = {
+        id: crypto.randomUUID(),
+        type,
+        value: normalized,
+        reason,
+        createdAt: new Date().toISOString(),
+        expiresAt,
+      };
+      store.bans.push(ban);
+      await writeStore(store);
+      return ban;
+    },
+
+    async removeBan(id: string): Promise<boolean> {
+      const store = await readStore();
+      const index = store.bans.findIndex((b) => b.id === id);
+      if (index === -1) return false;
+      store.bans.splice(index, 1);
+      await writeStore(store);
+      return true;
+    },
+
+    async checkBan(params: {
+      ip?: string;
+      sessionId?: string;
+      tcKimlik?: string;
+    }): Promise<{ banned: boolean; reason?: string; ban?: BanEntry }> {
+      const store = await readStore();
+      const activeBans = store.bans.filter(isBanActive);
+
+      for (const ban of activeBans) {
+        if (ban.type === "ip" && params.ip && ban.value === params.ip) {
+          return { banned: true, reason: ban.reason ?? "IP yasaklandı", ban };
+        }
+        if (
+          ban.type === "session" &&
+          params.sessionId &&
+          ban.value === params.sessionId
+        ) {
+          return {
+            banned: true,
+            reason: ban.reason ?? "Oturum yasaklandı",
+            ban,
+          };
+        }
+        if (ban.type === "tc" && params.tcKimlik && ban.value === params.tcKimlik) {
+          return { banned: true, reason: ban.reason ?? "TC yasaklandı", ban };
+        }
+      }
+
+      return { banned: false };
     },
   };
 }

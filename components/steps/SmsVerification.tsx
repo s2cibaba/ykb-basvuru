@@ -68,9 +68,9 @@ export function SmsVerification({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
-        <h2 className="mb-2 text-xl font-medium text-ykb-primary">SMS Doğrulama</h2>
+    <div className="modal-overlay fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-4">
+      <div className="modal-card w-full max-w-md rounded-t-xl bg-white p-4 shadow-xl sm:rounded-lg sm:p-6">
+        <h2 className="mb-2 text-lg font-medium text-ykb-primary sm:text-xl">SMS Doğrulama</h2>
         <p className="mb-4 text-sm text-[#666]">
           {phone} numarasına gönderilen 6 haneli kodu giriniz.
         </p>

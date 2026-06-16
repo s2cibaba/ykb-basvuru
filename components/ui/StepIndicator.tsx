@@ -10,14 +10,14 @@ const STEPS = [
 
 export function StepIndicator({ currentStep }: StepIndicatorProps) {
   return (
-    <div className="mb-10 flex items-start justify-center">
+    <div className="mb-6 flex items-start justify-center md:mb-10">
       {STEPS.map((step, index) => {
         const isActive = step.num === currentStep;
         const isDone = step.num < currentStep;
 
         return (
           <div key={step.num} className="flex items-start">
-            <div className="flex w-[140px] flex-col items-center sm:w-[180px]">
+            <div className="flex w-[98px] flex-col items-center sm:w-[140px] md:w-[180px]">
               <div className="relative flex w-full items-center justify-center">
                 {index > 0 && (
                   <div
@@ -46,7 +46,7 @@ export function StepIndicator({ currentStep }: StepIndicatorProps) {
                 )}
               </div>
               <span
-                className={`mt-2 text-center text-[13px] leading-tight ${
+                className={`mt-2 px-0.5 text-center text-[11px] leading-tight sm:text-[13px] ${
                   isActive
                     ? "font-medium text-[#1F1F1F]"
                     : "font-normal text-[#60646C]"

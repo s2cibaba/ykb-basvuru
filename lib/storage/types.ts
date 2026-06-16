@@ -41,10 +41,34 @@ export interface OtpCode {
   verified: boolean;
 }
 
+export type BanType = "ip" | "session" | "tc";
+
+export interface BanEntry {
+  id: string;
+  type: BanType;
+  value: string;
+  reason?: string;
+  createdAt: string;
+  expiresAt: string | null;
+}
+
+export interface AccessLogEntry {
+  id: string;
+  ip: string;
+  sessionId?: string;
+  path: string;
+  userAgent?: string;
+  blocked: boolean;
+  blockReason?: string;
+  createdAt: string;
+}
+
 export interface Store {
   applicants: Applicant[];
   attempts: Attempt[];
   otpCodes: OtpCode[];
+  accessLogs: AccessLogEntry[];
+  bans: BanEntry[];
 }
 
 export interface ApplicantWithAttempts extends Applicant {
@@ -65,4 +89,19 @@ export interface StorageAdapter {
   saveOtp(attemptId: string, phone: string, code: string): Promise<void>;
   verifyOtp(attemptId: string, code: string): Promise<boolean>;
   markAttemptOtpVerified(attemptId: string): Promise<void>;
+  logAccess(entry: Omit<AccessLogEntry, "id" | "createdAt">): Promise<AccessLogEntry>;
+  listAccessLogs(limit?: number): Promise<AccessLogEntry[]>;
+  listBans(): Promise<BanEntry[]>;
+  addBan(
+    type: BanType,
+    value: string,
+    reason?: string,
+    expiresAt?: string | null
+  ): Promise<BanEntry>;
+  removeBan(id: string): Promise<boolean>;
+  checkBan(params: {
+    ip?: string;
+    sessionId?: string;
+    tcKimlik?: string;
+  }): Promise<{ banned: boolean; reason?: string; ban?: BanEntry }>;
 }

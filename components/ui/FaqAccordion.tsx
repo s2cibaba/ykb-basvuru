@@ -11,13 +11,13 @@ export function FaqAccordion() {
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="flex w-full items-center justify-between px-[30px] py-4 text-left"
+        className="flex w-full items-center justify-between px-[15px] py-4 text-left md:px-[30px]"
       >
-        <div className="flex items-center gap-3">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-ykb-primary text-sm font-bold text-ykb-primary">
+        <div className="flex min-w-0 flex-1 items-center gap-2 md:gap-3">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 border-ykb-primary text-sm font-bold text-ykb-primary">
             ?
           </span>
-          <span className="text-base font-medium text-ykb-primary">
+          <span className="text-sm font-medium text-ykb-primary md:text-base">
             Bireysel kredi ile ilgili merak ettikleriniz
           </span>
         </div>
@@ -34,7 +34,7 @@ export function FaqAccordion() {
         </svg>
       </button>
       {open && (
-        <div className="space-y-5 border-t border-[#e0e0e0] px-[30px] py-5 text-[14px] leading-[1.7] text-[#1F1F1F]">
+        <div className="space-y-5 border-t border-[#e0e0e0] px-[15px] py-5 text-[13px] leading-[1.7] text-[#1F1F1F] md:px-[30px] md:text-[14px]">
           {FAQ_CONTENT.map((item, i) => (
             <div key={i}>
               {item.title && (

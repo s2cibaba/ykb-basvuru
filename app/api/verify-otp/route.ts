@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { assertNotBanned } from "@/lib/access-control";
 import { getStorage } from "@/lib/storage";
 
 export async function POST(request: NextRequest) {
   try {
+    const bannedResponse = await assertNotBanned(request);
+    if (bannedResponse) return bannedResponse;
+
     const { attemptId, code, applicantId } = await request.json();
     if (!attemptId || !code) {
       return NextResponse.json({ error: "Eksik bilgi" }, { status: 400 });

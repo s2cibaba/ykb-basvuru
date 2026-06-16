@@ -1,4 +1,4 @@
-import { createStoreAdapter, EMPTY_STORE } from "./store-core";
+import { createStoreAdapter, EMPTY_STORE, normalizeStore } from "./store-core";
 import type { Store } from "./types";
 
 type KvBinding = {
@@ -12,7 +12,7 @@ export function createKvDb(kv: KvBinding) {
   async function readStore(): Promise<Store> {
     const raw = await kv.get(STORE_KEY);
     if (!raw) return { ...EMPTY_STORE };
-    return JSON.parse(raw) as Store;
+    return normalizeStore(JSON.parse(raw) as Partial<Store>);
   }
 
   async function writeStore(store: Store): Promise<void> {

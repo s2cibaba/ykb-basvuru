@@ -338,16 +338,16 @@ export default function ApplicationWizard() {
     <div className="min-h-screen bg-ykb-page">
       <Header />
 
-      <div className="mx-auto max-w-card px-[10px] pb-6 pt-4">
-        <div className="overflow-hidden rounded-[10px] bg-white">
+      <div className="mx-auto max-w-card px-[10px] pb-4 pt-2 md:pb-6 md:pt-4">
+        <div className="overflow-hidden rounded-[6px] bg-white md:rounded-[10px]">
           <HeroBanner />
 
-          <div className="p-[30px]">
-            <h1 className="mb-2 text-[30px] font-medium leading-tight text-ykb-primary">
+          <div className="px-[15px] py-[30px] md:p-[30px]">
+            <h1 className="mb-2 text-[24px] font-medium leading-tight text-ykb-primary sm:text-[30px]">
               Bireysel İhtiyaç Kredisi
             </h1>
             <Breadcrumb />
-            <p className="mb-8 text-base leading-[25px] text-black">
+            <p className="mb-6 text-sm leading-[22px] text-black md:mb-8 md:text-base md:leading-[25px]">
               {DESCRIPTION_TEXT}
             </p>
 
@@ -382,12 +382,12 @@ export default function ApplicationWizard() {
                   Hemen Başvur
                 </button>
               ) : (
-                <div className="flex gap-2">
+                <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
                   <button
                     type="button"
                     onClick={() => setFormStep(1)}
                     disabled={loading}
-                    className="rounded border border-ykb-input-border px-6 py-2.5 text-sm"
+                    className="w-full rounded border border-ykb-input-border px-6 py-2.5 text-sm sm:w-auto"
                   >
                     Geri
                   </button>
@@ -395,7 +395,7 @@ export default function ApplicationWizard() {
                     type="button"
                     onClick={handlePersonalSubmit}
                     disabled={loading}
-                    className="ykb-btn-primary"
+                    className="ykb-btn-primary w-full sm:w-auto"
                   >
                     Devam Et
                   </button>
@@ -434,15 +434,15 @@ export default function ApplicationWizard() {
 
       {modal && (
         <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="modal-card max-w-md rounded-lg bg-white p-6 text-center shadow-xl">
+          <div className="modal-card w-full max-w-sm rounded-lg bg-white p-4 text-center shadow-xl sm:max-w-md sm:p-6">
             <div
-              className={`mb-3 text-4xl ${
+              className={`mb-3 text-3xl sm:text-4xl ${
                 modal.type === "error" ? "text-red-500" : "text-ykb-primary"
               }`}
             >
               {modal.type === "error" ? "✕" : "✓"}
             </div>
-            <p className="text-base font-medium text-[#333]">{modal.message}</p>
+            <p className="text-sm font-medium text-[#333] sm:text-base">{modal.message}</p>
           </div>
         </div>
       )}

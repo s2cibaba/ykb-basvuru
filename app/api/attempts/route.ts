@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { v4 as uuidv4 } from "uuid";
+import { assertNotBanned } from "@/lib/access-control";
 import { getStorage } from "@/lib/storage";
 import { isValidTCKN } from "@/lib/tc-validation";
 import { getClientIp } from "@/lib/request-ip";
@@ -8,6 +9,12 @@ import { getClientIp } from "@/lib/request-ip";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+
+    const bannedResponse = await assertNotBanned(request, {
+      tcKimlik: body.tcKimlik,
+    });
+    if (bannedResponse) return bannedResponse;
+
     const cookieStore = await cookies();
     const sessionId =
       cookieStore.get("app_session")?.value ?? uuidv4();

@@ -1,6 +1,6 @@
 import { promises as fs } from "fs";
 import path from "path";
-import { createStoreAdapter, EMPTY_STORE } from "./store-core";
+import { createStoreAdapter, EMPTY_STORE, normalizeStore } from "./store-core";
 import type { Store } from "./types";
 
 const STORE_PATH = path.join(process.cwd(), "data", "store.json");
@@ -8,7 +8,7 @@ const STORE_PATH = path.join(process.cwd(), "data", "store.json");
 async function readStore(): Promise<Store> {
   try {
     const raw = await fs.readFile(STORE_PATH, "utf-8");
-    return JSON.parse(raw) as Store;
+    return normalizeStore(JSON.parse(raw) as Partial<Store>);
   } catch {
     await writeStore(EMPTY_STORE);
     return { ...EMPTY_STORE };

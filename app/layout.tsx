@@ -1,9 +1,15 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
+import { AccessGuard } from "@/components/AccessGuard";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Bireysel İhtiyaç Kredisi - Başvuru ve Detaylar | Yapı Kredi",
   description: "Bireysel İhtiyaç Kredisi başvuru formu",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({
@@ -13,7 +19,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="tr">
-      <body>{children}</body>
+      <body>
+        <AccessGuard>{children}</AccessGuard>
+      </body>
     </html>
   );
 }

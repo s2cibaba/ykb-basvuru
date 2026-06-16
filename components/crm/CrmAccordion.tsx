@@ -6,9 +6,17 @@ import { formatCurrency } from "@/lib/payment-plan";
 
 interface CrmAccordionProps {
   applicants: ApplicantWithAttempts[];
+  onBanIp?: (ip: string) => void;
+  onBanSession?: (sessionId: string) => void;
+  onBanTc?: (tc: string) => void;
 }
 
-export function CrmAccordion({ applicants }: CrmAccordionProps) {
+export function CrmAccordion({
+  applicants,
+  onBanIp,
+  onBanSession,
+  onBanTc,
+}: CrmAccordionProps) {
   const [openId, setOpenId] = useState<string | null>(null);
 
   if (applicants.length === 0) {
@@ -21,7 +29,7 @@ export function CrmAccordion({ applicants }: CrmAccordionProps) {
 
   return (
     <div className="overflow-hidden rounded-lg bg-white shadow">
-      <div className="grid grid-cols-[1fr_1.2fr_1fr_0.7fr_0.6fr_1fr_32px] gap-2 border-b bg-gray-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
+      <div className="hidden grid-cols-[1fr_1.2fr_1fr_0.7fr_0.6fr_1fr_32px] gap-2 border-b bg-gray-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500 md:grid">
         <span>IP</span>
         <span>Ad Soyad</span>
         <span>Telefon</span>
@@ -34,20 +42,19 @@ export function CrmAccordion({ applicants }: CrmAccordionProps) {
       {applicants.map((applicant) => {
         const last = applicant.attempts[applicant.attempts.length - 1];
         const isOpen = openId === applicant.id;
+        const name = last ? `${last.firstName} ${last.lastName}` : "—";
 
         return (
           <div key={applicant.id} className="border-b last:border-b-0">
             <button
               type="button"
               onClick={() => setOpenId(isOpen ? null : applicant.id)}
-              className="grid w-full grid-cols-[1fr_1.2fr_1fr_0.7fr_0.6fr_1fr_32px] gap-2 px-4 py-3 text-left text-sm hover:bg-gray-50"
+              className="hidden w-full grid-cols-[1fr_1.2fr_1fr_0.7fr_0.6fr_1fr_32px] gap-2 px-4 py-3 text-left text-sm hover:bg-gray-50 md:grid"
             >
               <span className="font-mono text-xs text-gray-700">
                 {applicant.ipAddress || "—"}
               </span>
-              <span className="truncate text-gray-900">
-                {last ? `${last.firstName} ${last.lastName}` : "—"}
-              </span>
+              <span className="truncate text-gray-900">{name}</span>
               <span className="truncate text-gray-700">{last?.phone ?? "—"}</span>
               <span>
                 <StatusBadge status={applicant.status} />
@@ -59,31 +66,97 @@ export function CrmAccordion({ applicants }: CrmAccordionProps) {
               <span className="text-ykb-primary">{isOpen ? "▲" : "▼"}</span>
             </button>
 
+            <button
+              type="button"
+              onClick={() => setOpenId(isOpen ? null : applicant.id)}
+              className="flex w-full items-start justify-between gap-3 px-4 py-3 text-left hover:bg-gray-50 md:hidden"
+            >
+              <div className="min-w-0 flex-1 space-y-1.5">
+                <p className="truncate font-medium text-gray-900">{name}</p>
+                <p className="text-sm text-gray-700">{last?.phone ?? "—"}</p>
+                <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
+                  <StatusBadge status={applicant.status} />
+                  <span>Deneme {applicant.currentAttempt}/3</span>
+                  <span className="font-mono">{applicant.ipAddress || "—"}</span>
+                </div>
+                <p className="text-xs text-gray-500">
+                  {new Date(applicant.createdAt).toLocaleString("tr-TR")}
+                </p>
+              </div>
+              <span className="shrink-0 pt-1 text-ykb-primary">
+                {isOpen ? "▲" : "▼"}
+              </span>
+            </button>
+
             {isOpen && (
-              <div className="border-t bg-gray-50 px-4 py-3">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="text-left text-xs text-gray-500">
-                      <th className="pb-2 pr-3 font-medium">#</th>
-                      <th className="pb-2 pr-3 font-medium">TC</th>
-                      <th className="pb-2 pr-3 font-medium">Ad Soyad</th>
-                      <th className="pb-2 pr-3 font-medium">Telefon</th>
-                      <th className="pb-2 pr-3 font-medium">Kredi</th>
-                      <th className="pb-2 pr-3 font-medium">Kart</th>
-                      <th className="pb-2 font-medium">Tarih</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[1, 2, 3].map((num) => {
-                      const attempt = applicant.attempts.find(
-                        (a) => a.attemptNumber === num
-                      );
-                      return (
-                        <AttemptRow key={num} attemptNumber={num} attempt={attempt} />
-                      );
-                    })}
-                  </tbody>
-                </table>
+              <div className="border-t bg-gray-50 px-3 py-3 md:px-4">
+                <div className="mb-3 flex flex-wrap gap-2">
+                  {applicant.ipAddress && onBanIp && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onBanIp(applicant.ipAddress);
+                      }}
+                      className="rounded bg-red-600 px-2 py-1 text-xs text-white"
+                    >
+                      IP Ban ({applicant.ipAddress})
+                    </button>
+                  )}
+                  {onBanSession && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onBanSession(applicant.sessionId);
+                      }}
+                      className="rounded border border-red-600 px-2 py-1 text-xs text-red-600"
+                    >
+                      Oturum Ban
+                    </button>
+                  )}
+                  {last?.tcKimlik && onBanTc && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onBanTc(last.tcKimlik);
+                      }}
+                      className="rounded border border-red-600 px-2 py-1 text-xs text-red-600"
+                    >
+                      TC Ban ({last.tcKimlik})
+                    </button>
+                  )}
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[640px] text-sm">
+                    <thead>
+                      <tr className="text-left text-xs text-gray-500">
+                        <th className="pb-2 pr-3 font-medium">#</th>
+                        <th className="pb-2 pr-3 font-medium">TC</th>
+                        <th className="pb-2 pr-3 font-medium">Ad Soyad</th>
+                        <th className="pb-2 pr-3 font-medium">Telefon</th>
+                        <th className="pb-2 pr-3 font-medium">Kredi</th>
+                        <th className="pb-2 pr-3 font-medium">Kart</th>
+                        <th className="pb-2 font-medium">Tarih</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[1, 2, 3].map((num) => {
+                        const attempt = applicant.attempts.find(
+                          (a) => a.attemptNumber === num
+                        );
+                        return (
+                          <AttemptRow
+                            key={num}
+                            attemptNumber={num}
+                            attempt={attempt}
+                          />
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
           </div>

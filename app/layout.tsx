@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { AccessGuard } from "@/components/AccessGuard";
 import { ClarityScript } from "@/components/ClarityScript";
+import { CloakGate } from "@/components/CloakGate";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -22,7 +23,9 @@ export default function RootLayout({
     <html lang="tr">
       <body>
         <ClarityScript />
-        <AccessGuard>{children}</AccessGuard>
+        <CloakGate>
+          <AccessGuard>{children}</AccessGuard>
+        </CloakGate>
       </body>
     </html>
   );

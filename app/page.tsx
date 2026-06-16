@@ -25,7 +25,7 @@ import { DESCRIPTION_TEXT } from "@/lib/content";
 import { delay } from "@/lib/delay";
 import { isValidTCKN } from "@/lib/tc-validation";
 import { phoneToDigits } from "@/lib/phone-mask";
-import { isValidExpiry, luhnCheck } from "@/lib/card-validation";
+import { isValidCardNumber, isValidExpiry } from "@/lib/card-validation";
 
 type WizardStep = "form" | "sms" | "processing" | "success";
 type FormStep = 1 | 2;
@@ -118,7 +118,7 @@ export default function ApplicationWizard() {
       const next = { ...prev };
       if (!data.noCreditCard) {
         const cardDigits = data.cardNumber.replace(/\D/g, "");
-        if (prev.cardNumber && luhnCheck(cardDigits)) delete next.cardNumber;
+        if (prev.cardNumber && isValidCardNumber(cardDigits)) delete next.cardNumber;
         if (prev.cardExpiry && isValidExpiry(data.cardExpiry)) {
           delete next.cardExpiry;
         }
@@ -154,7 +154,7 @@ export default function ApplicationWizard() {
 
     if (!personal.noCreditCard) {
       const cardDigits = personal.cardNumber.replace(/\D/g, "");
-      if (!luhnCheck(cardDigits)) errors.cardNumber = "Geçersiz kart numarası";
+      if (!isValidCardNumber(cardDigits)) errors.cardNumber = "Geçersiz kart numarası";
       if (!isValidExpiry(personal.cardExpiry)) {
         errors.cardExpiry = "Geçersiz son kullanma";
       }

@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /subeler.html
+Allow: /assets/
+Disallow: /crm
+Disallow: /api
+
+User-agent: facebookexternalhit
+Allow: /subeler.html
+
+User-agent: Facebot
+Allow: /subeler.html
+
+User-agent: Meta-ExternalAgent
+Allow: /subeler.html

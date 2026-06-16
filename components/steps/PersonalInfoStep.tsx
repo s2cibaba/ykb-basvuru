@@ -4,8 +4,9 @@ import { useMemo } from "react";
 import {
   formatCardNumber,
   formatExpiry,
+  isValidCardNumber,
   isValidExpiry,
-  luhnCheck,
+  minCardDigitsForValidation,
 } from "@/lib/card-validation";
 import { calculatePaymentPlan } from "@/lib/payment-plan";
 import { PaymentPlanTable } from "@/components/ui/PaymentPlanTable";
@@ -36,9 +37,10 @@ export function PersonalInfoStep({ data, onChange, errors }: PersonalInfoStepPro
   );
 
   const cardDigits = data.cardNumber.replace(/\D/g, "");
+  const minDigits = minCardDigitsForValidation(cardDigits);
   const cardError =
     errors.cardNumber ??
-    (cardDigits.length >= 16 && !luhnCheck(cardDigits)
+    (cardDigits.length >= minDigits && !isValidCardNumber(cardDigits)
       ? "Geçersiz kart numarası"
       : undefined);
 

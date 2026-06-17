@@ -7,3 +7,4 @@ out
 .dev.vars
 data/store.json
 *.png
+!public/assets/bik-banner.png

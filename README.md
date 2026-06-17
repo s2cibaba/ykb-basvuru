@@ -15,6 +15,12 @@ npm run dev
 
 ## Cloudflare Workers
 
+Push to `master` → **Cloudflare Workers Builds** (GitHub bağlı) otomatik deploy eder.
+
+Build: `npm run build` (Next + OpenNext `postbuild`) → Deploy: `wrangler deploy`
+
+Manuel deploy:
+
 ```bash
 npm run deploy
 ```

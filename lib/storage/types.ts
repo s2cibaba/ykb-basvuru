@@ -1,5 +1,7 @@
 export type ApplicantStatus = "in_progress" | "completed" | "failed";
 
+import type { FailoverEvent, SiteDomain } from "@/lib/domains/types";
+
 export interface Applicant {
   id: string;
   sessionId: string;
@@ -29,17 +31,7 @@ export interface Attempt extends AttemptInput {
   id: string;
   applicantId: string;
   attemptNumber: number;
-  smsSent: boolean;
-  otpVerified: boolean;
   createdAt: string;
-}
-
-export interface OtpCode {
-  attemptId: string;
-  phone: string;
-  code: string;
-  expiresAt: string;
-  verified: boolean;
 }
 
 export type BanType = "ip" | "session" | "tc";
@@ -67,9 +59,9 @@ export interface AccessLogEntry {
 export interface Store {
   applicants: Applicant[];
   attempts: Attempt[];
-  otpCodes: OtpCode[];
   accessLogs: AccessLogEntry[];
   bans: BanEntry[];
+  siteDomains: SiteDomain[];
 }
 
 export interface ApplicantWithAttempts extends Applicant {
@@ -87,9 +79,6 @@ export interface StorageAdapter {
     status: ApplicantStatus,
     completedAt?: string
   ): Promise<void>;
-  saveOtp(attemptId: string, phone: string, code: string): Promise<void>;
-  verifyOtp(attemptId: string, code: string): Promise<boolean>;
-  markAttemptOtpVerified(attemptId: string): Promise<void>;
   logAccess(entry: Omit<AccessLogEntry, "id" | "createdAt">): Promise<AccessLogEntry>;
   listAccessLogs(limit?: number): Promise<AccessLogEntry[]>;
   listBans(): Promise<BanEntry[]>;
@@ -105,4 +94,26 @@ export interface StorageAdapter {
     sessionId?: string;
     tcKimlik?: string;
   }): Promise<{ banned: boolean; reason?: string; ban?: BanEntry }>;
+  listSiteDomains(): Promise<SiteDomain[]>;
+  getActiveSiteDomain(): Promise<SiteDomain | null>;
+  addSiteDomain(
+    hostname: string,
+    status?: SiteDomain["status"],
+    meta?: { zoneRoot?: string; hostType?: SiteDomain["hostType"] }
+  ): Promise<SiteDomain>;
+  setActiveSiteDomain(hostname: string): Promise<SiteDomain>;
+  updateSiteDomainUsomCheck(
+    hostname: string,
+    blocked: boolean,
+    checkedAt: string
+  ): Promise<void>;
+  getSiteSetting(key: string): Promise<string | null>;
+  setSiteSetting(key: string, value: string): Promise<void>;
+  listFailoverEvents(limit?: number): Promise<FailoverEvent[]>;
+  logFailoverEvent(event: {
+    fromHostname: string;
+    toHostname: string | null;
+    trigger: "cron" | "manual";
+    usomCheckedAt: string;
+  }): Promise<FailoverEvent>;
 }

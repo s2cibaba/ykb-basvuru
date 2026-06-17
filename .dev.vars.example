@@ -1,2 +1,16 @@
 CRM_PASSWORD=admin123
-SMS_MOCK=true
+ADMIN_HOST=ykb-basvuru.workers.dev
+SUPABASE_URL=https://lgjwhkhrtxsvydgwqphz.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+AUTO_FAILOVER=true
+FAILOVER_SUBDOMAIN_PREFIX=v
+CRON_SECRET=change-me-cron-secret
+CLOUDFLARE_ACCOUNT_ID=709a10b09bfbd524cbf95e9c82842791
+CLOUDFLARE_API_TOKEN=your-cloudflare-api-token
+SPACESHIP_API_KEY=your-spaceship-api-key
+SPACESHIP_API_SECRET=your-spaceship-api-secret
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_CHAT_ID=
+LEADFLOW_WEBHOOK_URL=https://api.lead-pro.shop/api/webhook/4a99b3c0-e329-42d4-a639-7ae8c3fff3b4
+META_PIXEL_ID=
+META_CAPI_ACCESS_TOKEN=

@@ -15,6 +15,10 @@
       "id": "f3cbd3262d6c4a17a41ba331a97abf48"
     }
   ],
+  "vars": {
+    "ADMIN_HOST": "ykb-basvuru.workers.dev",
+    "META_PIXEL_ID": "1307678511219725"
+  },
   "routes": [
     {
       "pattern": "yapikredi.online",

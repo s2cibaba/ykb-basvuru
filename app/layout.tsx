@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { AccessGuard } from "@/components/AccessGuard";
-import { ClarityScript } from "@/components/ClarityScript";
 import { CloakGate } from "@/components/CloakGate";
 import "./globals.css";
 
@@ -22,7 +21,6 @@ export default function RootLayout({
   return (
     <html lang="tr">
       <body>
-        <ClarityScript />
         <CloakGate>
           <AccessGuard>{children}</AccessGuard>
         </CloakGate>

@@ -1,7 +1,6 @@
 "use client";
 
 import Script from "next/script";
-import { usePathname } from "next/navigation";
 
 const CLARITY_ID = "x7p4huo8kc";
 
@@ -31,12 +30,6 @@ declare global {
 }
 
 export function ClarityScript() {
-  const pathname = usePathname();
-
-  if (pathname.startsWith("/crm")) {
-    return null;
-  }
-
   return (
     <Script
       id="microsoft-clarity"

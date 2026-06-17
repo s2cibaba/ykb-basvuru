@@ -10,8 +10,9 @@ import type {
 import { CrmAccordion } from "@/components/crm/CrmAccordion";
 import { CrmAccessLogs } from "@/components/crm/CrmAccessLogs";
 import { CrmBans } from "@/components/crm/CrmBans";
+import { CrmUsomPanel } from "@/components/crm/CrmUsomPanel";
 
-type Tab = "applicants" | "logs" | "bans";
+type Tab = "applicants" | "logs" | "bans" | "usom";
 
 async function crmFetch<T>(
   path: string,
@@ -256,6 +257,7 @@ export default function CrmPage() {
     { id: "applicants", label: "Başvurular" },
     { id: "logs", label: "Erişim Logları" },
     { id: "bans", label: "Yasaklılar" },
+    { id: "usom", label: "USOM / Domain" },
   ];
 
   return (
@@ -324,6 +326,14 @@ export default function CrmPage() {
 
         {tab === "bans" && (
           <CrmBans bans={bans} onAddBan={addBan} onRemoveBan={removeBan} />
+        )}
+
+        {tab === "usom" && token && (
+          <CrmUsomPanel
+            authToken={token}
+            crmFetch={crmFetch}
+            onError={setError}
+          />
         )}
       </div>
     </div>

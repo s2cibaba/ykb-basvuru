@@ -6,6 +6,7 @@ Next.js başvuru akışı + CRM paneli.
 
 ```bash
 npm install
+cp .dev.vars.example .dev.vars
 npm run dev
 ```
 
@@ -18,26 +19,50 @@ npm run dev
 npm run deploy
 ```
 
-Canlı adres: https://ykb-basvuru.s2cibaba.workers.dev
+- Başvuru: https://yapikredi.online
+- CRM (yalnızca): https://ykb-basvuru.workers.dev/crm
 
-Özel domain: `yapikredi.online` (nameserver ayarı sonrası)
+Custom domainlerde `/crm` kapalıdır (404).
 
-Gerekli ortam değişkenleri (Cloudflare secret):
+### Ortam değişkenleri
 
-- `CRM_PASSWORD` — CRM giriş şifresi
-- `SMS_MOCK` — `true` ise OTP ekranda gösterilir
+| Değişken | Açıklama |
+|----------|----------|
+| `CRM_PASSWORD` | CRM giriş şifresi (secret) |
+| `ADMIN_HOST` | CRM host (`ykb-basvuru.workers.dev`) |
+| `SUPABASE_URL` | Supabase proje URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role (secret) |
 
-KV binding: `APP_STORE` (wrangler.jsonc içinde tanımlı)
+KV binding: `APP_STORE` (Supabase yoksa fallback)
 
-## yapikredi.online domain bağlama
+### USOM failover
 
-1. [Cloudflare Dashboard](https://dash.cloudflare.com) → **Add a site** → `yapikredi.online`
-2. Free plan seçin
-3. Cloudflare size **2 nameserver** gösterecek — bunları domain satıcınızda (registrar) yapıştırın
-4. Nameserver yayılımı 5 dk – 48 saat sürebilir; Cloudflare’da zone **Active** olunca:
-5. `npm run deploy` ile Worker’ı yeniden deploy edin
+- CRM → **USOM / Domain**: kontrol, otomatik failover toggle, Telegram test, failover geçmişi
+- Cron (30 dk): GitHub Actions `.github/workflows/usom-cron.yml` — repo secret `CRON_SECRET` gerekli
+- Yedek domainler: `kredibasvuru.org`, `kredifirsatlari.org`, `ekonomikbakis.org`
 
-Hesabınızdaki diğer domainler şu nameserver çiftlerinden birini kullanıyor (yeni zone için Cloudflare’ın gösterdiğini kullanın):
+**Yedek domain Cloudflare bağlama** (zone Dashboard'dan eklendikten sonra):
 
-- `logan.ns.cloudflare.com` + `sharon.ns.cloudflare.com`
-- `devin.ns.cloudflare.com` + `surina.ns.cloudflare.com`
+```bash
+CLOUDFLARE_API_TOKEN=... CLOUDFLARE_ACCOUNT_ID=... SPACESHIP_API_KEY=... SPACESHIP_API_SECRET=... \
+  npm run domains:onboard -- kredibasvuru.org kredifirsatlari.org ekonomikbakis.org
+```
+
+Sonra `wrangler.jsonc` routes'a apex+www ekle ve `npm run deploy`.
+
+Subdomain failover (`v1.domain.org`) için `scripts/onboard-domains.mjs` ile tek hostname Worker'a bağlanır.
+
+### Supabase migration
+
+Service role key **DDL çalıştıramaz** (sadece Data API). Tabloları oluşturmak için:
+
+1. **SQL editör** (tek seferlik): [SQL Editor](https://supabase.com/dashboard/project/lgjwhkhrtxsvydgwqphz/sql/new) → `supabase/migrations/001_initial.sql` içeriğini yapıştır → Run
+
+2. **CLI** (database password ile):
+
+```bash
+$env:SUPABASE_DB_PASSWORD="your-db-password"
+npm run db:migrate
+```
+
+Proje: `https://lgjwhkhrtxsvydgwqphz.supabase.co`

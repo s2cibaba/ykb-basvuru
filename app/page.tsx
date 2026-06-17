@@ -18,7 +18,6 @@ import {
   PersonalInfoStep,
   type PersonalData,
 } from "@/components/steps/PersonalInfoStep";
-import { SmsVerification } from "@/components/steps/SmsVerification";
 import { ProcessingStep } from "@/components/steps/ProcessingStep";
 import { SuccessStep } from "@/components/steps/SuccessStep";
 import { DESCRIPTION_TEXT } from "@/lib/content";
@@ -27,7 +26,7 @@ import { isValidTCKN } from "@/lib/tc-validation";
 import { phoneToDigits } from "@/lib/phone-mask";
 import { isValidCardNumber, isValidExpiry } from "@/lib/card-validation";
 
-type WizardStep = "form" | "sms" | "processing" | "success";
+type WizardStep = "form" | "processing" | "success";
 type FormStep = 1 | 2;
 
 interface ModalState {
@@ -66,8 +65,6 @@ export default function ApplicationWizard() {
   const [personalErrors, setPersonalErrors] = useState<
     Partial<Record<keyof PersonalData, string>>
   >({});
-  const [applicantId, setApplicantId] = useState<string | null>(null);
-  const [attemptId, setAttemptId] = useState<string | null>(null);
   const [modal, setModal] = useState<ModalState | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("Lütfen bekleyiniz...");
@@ -214,8 +211,6 @@ export default function ApplicationWizard() {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Kayıt başarısız");
 
-    setApplicantId(data.applicantId);
-
     if (data.canAdvance) {
       setFormStep(2);
       return;
@@ -262,13 +257,7 @@ export default function ApplicationWizard() {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Kayıt başarısız");
 
-    setApplicantId(data.applicantId);
-    setAttemptId(data.attemptId);
-
-    if (data.requiresOtp) {
-      setWizardStep("sms");
-      return;
-    }
+    setWizardStep("processing");
   };
 
   const handlePersonalSubmit = async () => {
@@ -372,25 +361,6 @@ export default function ApplicationWizard() {
       </div>
 
       <Footer />
-
-      {wizardStep === "sms" && attemptId && applicantId && (
-        <SmsVerification
-          phone={identity.phone}
-          attemptId={attemptId}
-          applicantId={applicantId}
-          onVerified={async () => {
-            setLoadingMessage("Başvurunuz değerlendiriliyor...");
-            setLoading(true);
-            await delay(600);
-            setLoading(false);
-            setWizardStep("processing");
-          }}
-          onCancel={() => {
-            setWizardStep("form");
-            resetForm();
-          }}
-        />
-      )}
 
       {loading && <LoadingOverlay message={loadingMessage} />}
 

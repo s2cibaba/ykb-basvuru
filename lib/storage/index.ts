@@ -1,4 +1,6 @@
 import { createKvDb } from "./kv-db";
+import { createSupabaseDb } from "./supabase-db";
+import { isSupabaseConfigured } from "@/lib/supabase/server";
 import type { StorageAdapter } from "./types";
 
 type KvBinding = {
@@ -7,6 +9,14 @@ type KvBinding = {
 };
 
 export async function getStorage(): Promise<StorageAdapter> {
+  if (isSupabaseConfigured()) {
+    try {
+      return createSupabaseDb();
+    } catch {
+      // fall through to KV
+    }
+  }
+
   try {
     const { getCloudflareContext } = await import("@opennextjs/cloudflare");
     const { env } = await getCloudflareContext({ async: true });

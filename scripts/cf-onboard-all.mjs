@@ -17,11 +17,7 @@ const WORKER = "ykb-basvuru";
 const POLL_SEC = Number(process.env.CF_POLL_SEC ?? 15);
 const POLL_MAX = Number(process.env.CF_POLL_MAX ?? 40);
 
-const DEFAULT_DOMAINS = [
-  "kredibasvuru.org",
-  "kredifirsatlari.org",
-  "ekonomikbakis.org",
-];
+const DEFAULT_DOMAINS = ["kredifirsatlari.org", "ekonomikbakis.org"];
 
 const domains = process.argv.slice(2).length
   ? process.argv.slice(2)

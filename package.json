@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "deploy": "npm run build && opennextjs-cloudflare deploy",
     "db:migrate": "node scripts/migrate-supabase.mjs",
     "spaceship:list": "node scripts/spaceship-list-domains.mjs",
     "domains:onboard": "node scripts/onboard-domains.mjs",

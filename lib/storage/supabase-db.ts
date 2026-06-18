@@ -1,5 +1,6 @@
 import type { FailoverEvent, SiteDomain } from "@/lib/domains/types";
 import { zoneRootFromHostname } from "@/lib/domains/types";
+import { getDefaultOfferHost } from "@/lib/offer-host";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
 import type {
   Applicant,
@@ -448,10 +449,12 @@ export function createSupabaseDb(): StorageAdapter {
     },
 
     async getActiveSiteDomain(): Promise<SiteDomain | null> {
+      const form = getDefaultOfferHost();
       const { data, error } = await supabase
         .from("site_domains")
         .select()
         .eq("status", "active")
+        .neq("hostname", form)
         .maybeSingle();
 
       if (error) throw new Error(error.message);
@@ -494,7 +497,15 @@ export function createSupabaseDb(): StorageAdapter {
 
     async setActiveSiteDomain(hostname: string): Promise<SiteDomain> {
       const normalized = hostname.toLowerCase().replace(/^www\./, "");
+      const form = getDefaultOfferHost();
       await this.addSiteDomain(normalized, "standby");
+
+      const { error: formError } = await supabase
+        .from("site_domains")
+        .update({ status: "standby" })
+        .eq("hostname", form);
+
+      if (formError) throw new Error(formError.message);
 
       const { error: standbyError } = await supabase
         .from("site_domains")

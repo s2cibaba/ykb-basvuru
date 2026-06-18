@@ -19,11 +19,11 @@
     "ADMIN_HOST": "ykb-basvuru.workers.dev",
     "AUTO_FAILOVER": "true",
     "FAILOVER_SUBDOMAIN_PREFIX": "v",
-    "META_PIXEL_ID": "1307678511219725"
+    "META_PIXEL_ID": "1307678511219725",
+    "OFFER_HOST": "yapikredi.online",
+    "ENTRY_HOSTS": "kredifirsatlari.org,ekonomikbakis.org"
   },
   "routes": [
-    { "pattern": "kredibasvuru.org", "custom_domain": true },
-    { "pattern": "www.kredibasvuru.org", "custom_domain": true },
     { "pattern": "kredifirsatlari.org", "custom_domain": true },
     { "pattern": "www.kredifirsatlari.org", "custom_domain": true },
     { "pattern": "ekonomikbakis.org", "custom_domain": true },

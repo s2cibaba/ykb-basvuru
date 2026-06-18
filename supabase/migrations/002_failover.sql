@@ -23,9 +23,9 @@ create table if not exists site_settings (
 insert into site_settings (key, value) values ('auto_failover', 'true')
 on conflict (key) do nothing;
 
+-- kredibasvuru.org: Cloudflare "Suspected Phishing" — failover zincirine dahil değil
 insert into site_domains (hostname, status, is_primary, zone_root, host_type)
 values
-  ('kredibasvuru.org', 'standby', false, 'kredibasvuru.org', 'apex'),
   ('kredifirsatlari.org', 'standby', false, 'kredifirsatlari.org', 'apex'),
   ('ekonomikbakis.org', 'standby', false, 'ekonomikbakis.org', 'apex')
 on conflict (hostname) do update set

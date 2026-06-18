@@ -59,13 +59,25 @@ function resolveCloakPageUrl(
   return new URL(fallbackPath, base).toString();
 }
 
-function clientIp(request: Request): string {
+export function getClientIp(request: Request): string {
   return (
     request.headers.get("cf-connecting-ip") ??
     request.headers.get("x-real-ip") ??
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
     "0.0.0.0"
   );
+}
+
+/** CH panelinde IP whitelist yoksa: worker secret CLOAK_TEST_IPS ile test bypass */
+export function isCloakTestIp(request: Request): boolean {
+  const raw = process.env.CLOAK_TEST_IPS?.trim();
+  if (!raw) return false;
+  const ip = getClientIp(request);
+  return raw
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .includes(ip);
 }
 
 export async function checkCloak(request: Request): Promise<CloakCheckResult | null> {
@@ -77,7 +89,7 @@ export async function checkCloak(request: Request): Promise<CloakCheckResult | n
     referer: request.headers.get("referer") ?? "",
     query: url.search.slice(1),
     lang: request.headers.get("accept-language") ?? "",
-    ip_address: clientIp(request),
+    ip_address: getClientIp(request),
   });
 
   try {

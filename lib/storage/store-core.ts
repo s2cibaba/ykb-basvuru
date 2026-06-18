@@ -9,11 +9,11 @@ import type {
   BanType,
   Store,
 } from "./types";
-import type { SiteDomain, FailoverEvent } from "@/lib/domains/types";
+import type { FailoverEvent, SiteDomain } from "@/lib/domains/types";
 import { zoneRootFromHostname } from "@/lib/domains/types";
+import { getAdPoolHosts, getDefaultOfferHost } from "@/lib/offer-host";
 
 const MAX_ACCESS_LOGS = 1000;
-const DEFAULT_ACTIVE_HOST = "yapikredi.online";
 
 export const EMPTY_STORE: Store = {
   applicants: [],
@@ -33,35 +33,25 @@ export function normalizeStore(raw: Partial<Store>): Store {
   };
 
   if (store.siteDomains.length === 0) {
+    const formHost = getDefaultOfferHost();
     store.siteDomains = [
       {
         id: crypto.randomUUID(),
-        hostname: DEFAULT_ACTIVE_HOST,
+        hostname: "kredifirsatlari.org",
         status: "active",
         isPrimary: true,
-        zoneRoot: DEFAULT_ACTIVE_HOST,
-        hostType: "apex",
-        lastUsomCheck: null,
-        blockedAt: null,
-        createdAt: new Date().toISOString(),
-      },
-      {
-        id: crypto.randomUUID(),
-        hostname: "kredibasvuru.org",
-        status: "standby",
-        isPrimary: false,
-        zoneRoot: "kredibasvuru.org",
-        hostType: "apex",
-        lastUsomCheck: null,
-        blockedAt: null,
-        createdAt: new Date().toISOString(),
-      },
-      {
-        id: crypto.randomUUID(),
-        hostname: "kredifirsatlari.org",
-        status: "standby",
-        isPrimary: false,
         zoneRoot: "kredifirsatlari.org",
+        hostType: "apex",
+        lastUsomCheck: null,
+        blockedAt: null,
+        createdAt: new Date().toISOString(),
+      },
+      {
+        id: crypto.randomUUID(),
+        hostname: formHost,
+        status: "standby",
+        isPrimary: false,
+        zoneRoot: formHost,
         hostType: "apex",
         lastUsomCheck: null,
         blockedAt: null,
@@ -79,9 +69,39 @@ export function normalizeStore(raw: Partial<Store>): Store {
         createdAt: new Date().toISOString(),
       },
     ];
+  } else {
+    repairSiteDomains(store);
   }
 
   return store;
+}
+
+/** KV'de form host yanlışlıkla active ise reklam pool'undan birini aktif yap */
+function repairSiteDomains(store: Store): void {
+  const formHost = getDefaultOfferHost();
+  const pool = getAdPoolHosts();
+
+  const activeAd = store.siteDomains.find(
+    (d) =>
+      d.status === "active" &&
+      d.hostname !== formHost &&
+      pool.includes(d.hostname)
+  );
+  if (activeAd) return;
+
+  const candidate = store.siteDomains.find(
+    (d) =>
+      pool.includes(d.hostname) &&
+      d.status === "standby"
+  );
+  if (!candidate) return;
+
+  for (const d of store.siteDomains) {
+    if (d.hostname === formHost || d.status === "active") {
+      d.status = "standby";
+    }
+  }
+  candidate.status = "active";
 }
 
 function isBanActive(ban: BanEntry): boolean {
@@ -292,7 +312,12 @@ export function createStoreAdapter(io: StoreIO) {
 
     async getActiveSiteDomain(): Promise<SiteDomain | null> {
       const store = await readStore();
-      return store.siteDomains.find((d) => d.status === "active") ?? null;
+      const form = getDefaultOfferHost();
+      return (
+        store.siteDomains.find(
+          (d) => d.status === "active" && d.hostname !== form
+        ) ?? null
+      );
     },
 
     async addSiteDomain(
@@ -344,7 +369,12 @@ export function createStoreAdapter(io: StoreIO) {
         store.siteDomains.push(target);
       }
 
+      const form = getDefaultOfferHost();
       for (const d of store.siteDomains) {
+        if (d.hostname === form) {
+          d.status = "standby";
+          continue;
+        }
         if (d.id === target.id) {
           d.status = "active";
           d.blockedAt = null;

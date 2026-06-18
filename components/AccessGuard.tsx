@@ -19,53 +19,47 @@ function BlockedScreen({ reason }: { reason?: string }) {
   );
 }
 
+const LOG_TIMEOUT_MS = 4000;
+
 export function AccessGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [blocked, setBlocked] = useState(false);
   const [blockReason, setBlockReason] = useState<string>();
-  const [checked, setChecked] = useState(false);
 
   useEffect(() => {
-    if (pathname.startsWith("/crm")) {
-      setChecked(true);
-      return;
-    }
+    if (pathname.startsWith("/crm")) return;
 
-    let cancelled = false;
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => controller.abort(), LOG_TIMEOUT_MS);
 
     fetch("/api/access/log", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ path: pathname }),
+      signal: controller.signal,
     })
       .then((res) => res.json())
       .then((data: { banned?: boolean; reason?: string }) => {
-        if (cancelled) return;
         if (data.banned) {
           setBlocked(true);
           setBlockReason(data.reason);
         }
-        setChecked(true);
       })
       .catch(() => {
-        if (!cancelled) setChecked(true);
+        // Ağ yavaşsa formu yine de göster
+      })
+      .finally(() => {
+        window.clearTimeout(timer);
       });
 
     return () => {
-      cancelled = true;
+      controller.abort();
+      window.clearTimeout(timer);
     };
   }, [pathname]);
 
   if (pathname.startsWith("/crm")) {
     return <>{children}</>;
-  }
-
-  if (!checked) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-ykb-page">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-white border-t-transparent" />
-      </div>
-    );
   }
 
   if (blocked) {

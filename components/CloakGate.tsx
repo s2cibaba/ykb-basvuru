@@ -5,13 +5,19 @@ import { usePathname } from "next/navigation";
 import { ClarityScript } from "@/components/ClarityScript";
 import { MetaAttribution } from "@/components/MetaAttribution";
 
-export function CloakGate({ children }: { children: React.ReactNode }) {
+export function CloakGate({
+  children,
+  initialOffer = true,
+}: {
+  children: React.ReactNode;
+  initialOffer?: boolean;
+}) {
   const pathname = usePathname();
   const skip = pathname.startsWith("/crm") || pathname.startsWith("/subeler");
-  const [isOffer, setIsOffer] = useState(skip);
+  const [isOffer, setIsOffer] = useState(skip || initialOffer);
 
   useEffect(() => {
-    if (skip) return;
+    if (skip || initialOffer) return;
 
     fetch("/api/cloak/check", { cache: "no-store" })
       .then((res) => res.json())
@@ -19,7 +25,7 @@ export function CloakGate({ children }: { children: React.ReactNode }) {
         setIsOffer(data.page !== "white");
       })
       .catch(() => setIsOffer(true));
-  }, [skip]);
+  }, [skip, initialOffer]);
 
   return (
     <>

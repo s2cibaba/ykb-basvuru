@@ -4,11 +4,14 @@ import {
   zoneRootFromHostname,
 } from "@/lib/domains/types";
 
-const BACKUP_APEX_ORDER = [
-  "kredibasvuru.org",
-  "kredifirsatlari.org",
-  "ekonomikbakis.org",
-];
+const BACKUP_APEX_ORDER = ["kredifirsatlari.org", "ekonomikbakis.org"];
+
+/** Cloudflare edge block veya manuel devre dışı — failover adayı değil */
+const FAILOVER_EXCLUDED = new Set(["kredibasvuru.org", "www.kredibasvuru.org"]);
+
+export function isFailoverExcluded(hostname: string): boolean {
+  return FAILOVER_EXCLUDED.has(hostname.toLowerCase().replace(/^www\./, ""));
+}
 
 function subdomainPrefix(): string {
   return process.env.FAILOVER_SUBDOMAIN_PREFIX?.trim() || "v";
@@ -29,22 +32,31 @@ function nextSubdomainHostname(zoneRoot: string, existing: SiteDomain[]): string
   return null;
 }
 
-export function pickNextHostname(
+/** Yedek reklam domainleri arasından sıradaki — form host (yapikredi.online) hariç */
+export function pickNextAdHostname(
   active: SiteDomain,
-  allDomains: SiteDomain[]
+  allDomains: SiteDomain[],
+  formHost: string
 ): string | null {
-  const zoneRoot = active.zoneRoot ?? zoneRootFromHostname(active.hostname);
+  const form = formHost.toLowerCase();
 
   const sameZoneStandbySub = allDomains.find(
     (d) =>
-      d.zoneRoot === zoneRoot &&
+      d.hostname !== form &&
+      d.zoneRoot === (active.zoneRoot ?? zoneRootFromHostname(active.hostname)) &&
       d.hostType === "subdomain" &&
       d.status === "standby"
   );
   if (sameZoneStandbySub) return sameZoneStandbySub.hostname;
 
+  const zoneRoot = active.zoneRoot ?? zoneRootFromHostname(active.hostname);
   const newSub = nextSubdomainHostname(zoneRoot, allDomains);
-  if (newSub && active.hostType === "apex" && active.hostname === zoneRoot) {
+  if (
+    newSub &&
+    active.hostType === "apex" &&
+    active.hostname === zoneRoot &&
+    active.hostname !== form
+  ) {
     return newSub;
   }
 
@@ -55,7 +67,7 @@ export function pickNextHostname(
   );
 
   for (const apex of BACKUP_APEX_ORDER) {
-    if (apex === active.hostname) continue;
+    if (apex === form || apex === active.hostname) continue;
     const standby = allDomains.find(
       (d) => d.hostname === apex && d.status === "standby"
     );
@@ -67,6 +79,7 @@ export function pickNextHostname(
   }
 
   for (const d of allDomains) {
+    if (FAILOVER_EXCLUDED.has(d.hostname) || d.hostname === form) continue;
     if (
       d.status === "standby" &&
       d.hostType === "apex" &&
@@ -77,6 +90,29 @@ export function pickNextHostname(
   }
 
   return null;
+}
+
+export function pickNextFormSubdomain(
+  formHost: string,
+  allDomains: SiteDomain[]
+): string | null {
+  const zoneRoot = zoneRootFromHostname(formHost);
+  const existing = allDomains.find(
+    (d) =>
+      d.zoneRoot === zoneRoot &&
+      d.hostType === "subdomain" &&
+      d.status === "standby"
+  );
+  if (existing) return existing.hostname;
+  return nextSubdomainHostname(zoneRoot, allDomains);
+}
+
+export function pickNextHostname(
+  active: SiteDomain,
+  allDomains: SiteDomain[],
+  formHost = "yapikredi.online"
+): string | null {
+  return pickNextAdHostname(active, allDomains, formHost);
 }
 
 export function buildSubdomainRecord(hostname: string): {

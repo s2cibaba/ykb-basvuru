@@ -11,8 +11,15 @@ const STORE_KEY = "app-store";
 export function createKvDb(kv: KvBinding) {
   async function readStore(): Promise<Store> {
     const raw = await kv.get(STORE_KEY);
-    if (!raw) return { ...EMPTY_STORE };
-    return normalizeStore(JSON.parse(raw) as Partial<Store>);
+    if (!raw) return normalizeStore({ ...EMPTY_STORE });
+
+    const parsed = JSON.parse(raw) as Partial<Store>;
+    const before = JSON.stringify(parsed.siteDomains ?? []);
+    const store = normalizeStore(parsed);
+    if (before !== JSON.stringify(store.siteDomains)) {
+      await kv.put(STORE_KEY, JSON.stringify(store));
+    }
+    return store;
   }
 
   async function writeStore(store: Store): Promise<void> {

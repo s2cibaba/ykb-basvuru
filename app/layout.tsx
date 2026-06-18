@@ -10,7 +10,7 @@ import "./globals.css";
 
 export async function generateMetadata(): Promise<Metadata> {
   const headerStore = await headers();
-  const isOffer = headerStore.get("x-cloak-page") === "offer";
+  const isOffer = headerStore.get("x-cloak-page") !== "white";
 
   return {
     title: isOffer ? OFFER_PAGE_TITLE : WHITE_PAGE_TITLE,
@@ -25,18 +25,15 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const headerStore = await headers();
-  const initialIsOffer = headerStore.get("x-cloak-page") === "offer";
-
   return (
     <html lang="tr">
       <body>
-        <CloakGate initialIsOffer={initialIsOffer}>
+        <CloakGate>
           <AccessGuard>{children}</AccessGuard>
         </CloakGate>
       </body>

@@ -13,7 +13,7 @@ import {
 } from "@/lib/domains/active-cache";
 
 const CRAWLER_UA =
-  /facebookexternalhit|Facebot|Meta-ExternalAgent|meta-externalagent|Instagram|LinkedInBot|Twitterbot|Googlebot|bingbot|Slurp|DuckDuckBot|Baiduspider|YandexBot|ia_archiver|WhatsApp|TelegramBot|Pinterestbot|Snapchat|AdsBot-Google/i;
+  /facebookexternalhit|Facebot|Meta-ExternalAgent|meta-externalagent|LinkedInBot|Twitterbot|Googlebot|bingbot|Slurp|DuckDuckBot|Baiduspider|YandexBot|ia_archiver|Pinterestbot|AdsBot-Google/i;
 
 const CLOAK_HEADER = "x-cloak-page";
 
@@ -76,6 +76,10 @@ export async function middleware(request: NextRequest) {
   }
 
   if (bypass(pathname)) {
+    return NextResponse.next();
+  }
+
+  if (isCrmPath(pathname) && isAdminHost(host)) {
     return NextResponse.next();
   }
 

@@ -61,7 +61,11 @@ export function AccessGuard({ children }: { children: React.ReactNode }) {
   }
 
   if (!checked) {
-    return null;
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-ykb-page">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-white border-t-transparent" />
+      </div>
+    );
   }
 
   if (blocked) {

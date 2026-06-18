@@ -25,6 +25,40 @@ interface CloakApiBody {
   mode_offer_page?: string;
 }
 
+export interface CloakCheckResult extends CloakResult {
+  filterType?: string;
+}
+
+function resolveCloakPageUrl(
+  request: Request,
+  target: string | undefined,
+  fallbackPath: string
+): string {
+  const base = new URL(request.url);
+  if (!target?.trim()) {
+    return new URL(fallbackPath, base).toString();
+  }
+
+  const trimmed = target.trim();
+
+  // CH bazen "subeler.html" gibi göreli path döner — aynı domain'de aç.
+  if (!trimmed.includes("://") && !/^\d+\.\d+\.\d+\.\d+/.test(trimmed)) {
+    const path = trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
+    return new URL(path, base).toString();
+  }
+
+  try {
+    const resolved = new URL(trimmed, base);
+    if (resolved.hostname === base.hostname) {
+      return resolved.toString();
+    }
+  } catch {
+    // fall through
+  }
+
+  return new URL(fallbackPath, base).toString();
+}
+
 function clientIp(request: Request): string {
   return (
     request.headers.get("cf-connecting-ip") ??
@@ -34,7 +68,7 @@ function clientIp(request: Request): string {
   );
 }
 
-export async function checkCloak(request: Request): Promise<CloakResult | null> {
+export async function checkCloak(request: Request): Promise<CloakCheckResult | null> {
   const url = new URL(request.url);
 
   const body = new URLSearchParams({
@@ -72,19 +106,31 @@ export async function checkCloak(request: Request): Promise<CloakResult | null> 
 
     if (data.filter_page === "offer") {
       if (data.mode_offer_page === "redirect" && data.url_offer_page) {
-        return { page: "offer", redirectUrl: data.url_offer_page };
+        return {
+          page: "offer",
+          redirectUrl: data.url_offer_page,
+          filterType: data.filter_type,
+        };
       }
       if (data.mode_offer_page === "iframe" && data.url_offer_page) {
-        return { page: "offer", iframeUrl: data.url_offer_page };
+        return {
+          page: "offer",
+          iframeUrl: data.url_offer_page,
+          filterType: data.filter_type,
+        };
       }
-      return { page: "offer" };
+      return { page: "offer", filterType: data.filter_type };
     }
 
     if (data.filter_page === "white") {
       if (data.mode_white_page === "redirect" && data.url_white_page) {
-        return { page: "white", redirectUrl: data.url_white_page };
+        return {
+          page: "white",
+          redirectUrl: data.url_white_page,
+          filterType: data.filter_type,
+        };
       }
-      return { page: "white" };
+      return { page: "white", filterType: data.filter_type };
     }
 
     return null;
@@ -97,8 +143,7 @@ export function whiteRedirectTarget(
   request: Request,
   redirectUrl?: string
 ): string {
-  if (redirectUrl) return redirectUrl;
-  return new URL("/subeler.html", request.url).toString();
+  return resolveCloakPageUrl(request, redirectUrl, "/subeler.html");
 }
 
 export function offerPassCookieOptions(secure: boolean) {

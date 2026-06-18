@@ -75,11 +75,14 @@ export async function middleware(request: NextRequest) {
     return new NextResponse(null, { status: 404 });
   }
 
-  if (bypass(pathname)) {
+  if (isAdminHost(host)) {
+    if (pathname === "/" || pathname === "") {
+      return NextResponse.redirect(new URL("/crm", request.url), 302);
+    }
     return NextResponse.next();
   }
 
-  if (isCrmPath(pathname) && isAdminHost(host)) {
+  if (bypass(pathname)) {
     return NextResponse.next();
   }
 

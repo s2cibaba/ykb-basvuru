@@ -25,19 +25,33 @@ Manuel deploy:
 npm run deploy
 ```
 
-- Başvuru: https://yapikredi.online
-- CRM (yalnızca): https://ykb-basvuru.workers.dev/crm
+- Başvuru: https://yapikredi.online (veya aktif failover domain)
+- CRM (yalnızca workers.dev): https://ykb-basvuru.s2cibaba.workers.dev/crm
+  - Kök URL (`/`) otomatik `/crm`'e yönlendirilir
+  - Custom domainlerde `/crm` kapalıdır (404)
 
-Custom domainlerde `/crm` kapalıdır (404).
+### Cloaking.House
+
+Kod label: `905f76cb54ba11e58354308b3ad3eae2` — paneldeki flow ile eşleşmeli.
+
+| Panel ayarı | Değer |
+|-------------|-------|
+| White page | `https://yapikredi.online/subeler.html` (veya aktif domain) |
+| Offer page | Aktif landing URL (ör. `https://yapikredi.online/`) |
+| Offer mode | Aynı domain (redirect değil) |
+
+**Reklam öncesi test:** Doğrudan URL ile girince çoğu trafik **white** (şube sayfası) görür — bu normal. Offer testi için Cloaking.House'ta IP whitelist veya aktif domain + `?fbclid=test` kullan. workers.dev üzerinden başvuru testi yapma; CRM içindir.
 
 ### Ortam değişkenleri
 
 | Değişken | Açıklama |
 |----------|----------|
 | `CRM_PASSWORD` | CRM giriş şifresi (secret) |
-| `ADMIN_HOST` | CRM host (`ykb-basvuru.workers.dev`) |
+| `ADMIN_HOST` | CRM host (`ykb-basvuru.workers.dev` veya `*.workers.dev`) |
 | `SUPABASE_URL` | Supabase proje URL |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role (secret) |
+| `META_PIXEL_ID` | Meta dataset ID |
+| `META_CAPI_ACCESS_TOKEN` | Meta CAPI token (secret) |
 
 KV binding: `APP_STORE` (Supabase yoksa fallback)
 

@@ -11,6 +11,7 @@
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy": "npm run build && opennextjs-cloudflare deploy",
     "db:migrate": "node scripts/migrate-supabase.mjs",
+    "verify:system": "node scripts/verify-system.mjs",
     "spaceship:list": "node scripts/spaceship-list-domains.mjs",
     "domains:onboard": "node scripts/onboard-domains.mjs",
     "domains:cf-onboard": "node scripts/cf-onboard-all.mjs",

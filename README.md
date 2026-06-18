@@ -115,7 +115,23 @@ curl -fsS "https://ykb-basvuru.s2cibaba.workers.dev/api/cron/usom-check" \
 
 ### Supabase migration
 
-Proje: `https://fbwjqqstvnviifpeywzt.supabase.co`
+Proje: `https://fbwjqqstvnviifpeywzt.supabase.co` (`ykb-basvuru`)
+
+Worker secret `SUPABASE_URL` bu projeyi göstermeli (`lgjwhkh...` gibi eski ref kullanılmaz).
+
+```bash
+npx supabase projects api-keys --project-ref fbwjqqstvnviifpeywzt
+# ardından:
+# echo https://fbwjqqstvnviifpeywzt.supabase.co | npx wrangler secret put SUPABASE_URL
+# echo <service_role> | npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY
+```
+
+Doğrulama:
+
+```bash
+$env:CRON_SECRET="..."
+node scripts/verify-system.mjs
+```
 
 1. **MCP / SQL editör:** `supabase/migrations/001_initial.sql`, `002_failover.sql`, `003_domain_roles.sql`
 2. **CLI** (database password ile):

@@ -1,6 +1,6 @@
 CRM_PASSWORD=admin123
 ADMIN_HOST=ykb-basvuru.workers.dev
-SUPABASE_URL=https://lgjwhkhrtxsvydgwqphz.supabase.co
+SUPABASE_URL=https://fbwjqqstvnviifpeywzt.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 AUTO_FAILOVER=true
 FAILOVER_SUBDOMAIN_PREFIX=v

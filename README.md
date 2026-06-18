@@ -38,10 +38,23 @@ Kod label: `905f76cb54ba11e58354308b3ad3eae2` — paneldeki flow ile eşleşmeli
 
 | Panel ayarı | Değer |
 |-------------|-------|
+| Flow adı | yapı kredi (panel) |
 | White page | `subeler.html` |
 | White mode | **Loading** |
-| Offer page | `basvuru.html` veya `https://yapikredi.online/` |
-| Offer mode | Giriş domainde **Loading** yeterli (kod offer’da otomatik redirect yapar) |
+| Offer page | `basvuru.html` |
+| Offer mode | **Loading** |
+
+CH offer `basvuru.html` Cloudflare’de `/`’e yönlendirir; gerçek form `yapikredi.online` üzerinde Next.js’tir.
+
+#### CH panel kontrol listesi (manuel)
+
+- [ ] **Filtering → Allowed IPs:** test IP’lerini ekle veya Black IP filtresini kapat (`black_ip` CH’nin otomatik DB’sidir; panelde silinecek liste yok)
+- [ ] **Kampanya / tracking URL:** `https://kredifirsatlari.org/` (giriş domaini — `yapikredi.online` değil)
+- [ ] **Meta reklam hedef URL:** `https://kredifirsatlari.org/`
+- [ ] White/offer sayfaları yukarıdaki tablo ile eşleşsin
+- [ ] Eski `88.255.216.16/landpage` linkleri kaldırılsın
+
+Worker secret `CLOAK_TEST_IPS` (virgülle IP) — CH bypass için; production’da `88.255.216.16` tanımlı.
 
 ### Giriş domain → form domain
 
@@ -56,19 +69,7 @@ Worker vars: `OFFER_HOST=yapikredi.online`, `ENTRY_HOSTS=kredifirsatlari.org,eko
 
 Cloudflare’de `basvuru.html` yalnızca CH uyumluluğu için `/`’e yönlendirir.
 
-#### CH `black_ip` ve test
-
-`black_ip` CH'nin **otomatik** küresel IP veritabanıdır — panelde silinecek liste yok. Kendi IP'n test trafiğinden işaretlenmiş olabilir.
-
-**Bizim çözüm:** Worker secret `CLOAK_TEST_IPS` (virgülle IP) — CH bypass, offer görürsün. Production'da `88.255.216.16` eklendi.
-
-**CH panel (Filtering adımı):** "Allowed IPs" alanına test IP ekle veya Black IP filtresini kapat.
-
-**Kampanya / Meta URL:** giriş domain (ör. `https://kredifirsatlari.org/`) — doğrudan `yapikredi.online` değil.
-
-Mobil teşhis: `https://yapikredi.online/api/cloak/check` → `filter_type`, `client_ip`, `usom_blocked`.
-
-**Türkiye engeli:** USOM listesinde `yapikredi.online` **yok**. White görmen domain yasağı değil, CH filtresi.
+**Doğrudan `yapikredi.online` açılınca white (`/subeler.html`) normaldir** — form yalnızca giriş domaininden (`kredifirsatlari.org`) cloak geçişi sonrası açılır.
 
 ### Ortam değişkenleri
 
@@ -116,10 +117,23 @@ curl -fsS "https://ykb-basvuru.s2cibaba.workers.dev/api/cron/usom-check" \
 
 Proje: `https://fbwjqqstvnviifpeywzt.supabase.co`
 
-1. **MCP / SQL editör:** `supabase/migrations/001_initial.sql` ve `002_failover.sql`
+1. **MCP / SQL editör:** `supabase/migrations/001_initial.sql`, `002_failover.sql`, `003_domain_roles.sql`
 2. **CLI** (database password ile):
 
 ```bash
 $env:SUPABASE_DB_PASSWORD="your-db-password"
 npm run db:migrate
 ```
+
+### Canlı URL özeti
+
+| Amaç | URL |
+|------|-----|
+| Meta reklam (giriş) | https://kredifirsatlari.org/ |
+| Form (otomatik yönlendirme) | https://yapikredi.online/ |
+| White sayfa | https://yapikredi.online/subeler.html |
+| CRM | https://ykb-basvuru.s2cibaba.workers.dev/crm |
+| Cloak debug | https://kredifirsatlari.org/api/cloak/check |
+| USOM cron (Bearer `CRON_SECRET`) | https://ykb-basvuru.s2cibaba.workers.dev/api/cron/usom-check |
+
+`wrangler.jsonc` ve `wrangler.production.jsonc` aynı route setini kullanır (giriş + form domainleri; `kredibasvuru.org` yok).

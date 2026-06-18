@@ -17,16 +17,18 @@
   ],
   "vars": {
     "ADMIN_HOST": "ykb-basvuru.workers.dev",
-    "META_PIXEL_ID": "1307678511219725"
+    "AUTO_FAILOVER": "true",
+    "FAILOVER_SUBDOMAIN_PREFIX": "v",
+    "META_PIXEL_ID": "1307678511219725",
+    "OFFER_HOST": "yapikredi.online",
+    "ENTRY_HOSTS": "kredifirsatlari.org,ekonomikbakis.org"
   },
   "routes": [
-    {
-      "pattern": "yapikredi.online",
-      "custom_domain": true
-    },
-    {
-      "pattern": "www.yapikredi.online",
-      "custom_domain": true
-    }
+    { "pattern": "kredifirsatlari.org", "custom_domain": true },
+    { "pattern": "www.kredifirsatlari.org", "custom_domain": true },
+    { "pattern": "ekonomikbakis.org", "custom_domain": true },
+    { "pattern": "www.ekonomikbakis.org", "custom_domain": true },
+    { "pattern": "yapikredi.online", "custom_domain": true },
+    { "pattern": "www.yapikredi.online", "custom_domain": true }
   ]
 }

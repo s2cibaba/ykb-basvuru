@@ -5,7 +5,7 @@ import pg from "pg";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const migrations = ["001_initial.sql", "002_failover.sql"];
+const migrations = ["001_initial.sql", "002_failover.sql", "003_domain_roles.sql"];
 const password = process.env.SUPABASE_DB_PASSWORD;
 const projectRef = "fbwjqqstvnviifpeywzt";
 

@@ -1,6 +1,13 @@
 const CLOAK_LABEL = "905f76cb54ba11e58354308b3ad3eae2";
 const CLOAK_API = "https://cloakit.house/api/v1/check";
 
+export const OFFER_COOKIE = "offer_pass";
+export const OFFER_COOKIE_MAX_AGE = 60 * 60 * 2;
+
+export const OFFER_PAGE_TITLE =
+  "Bireysel İhtiyaç Kredisi - Başvuru ve Detaylar | Yapı Kredi";
+export const WHITE_PAGE_TITLE = "En Yakın Yapı Kredi Şubesi | Şube ve ATM";
+
 export type CloakPage = "white" | "offer";
 
 export interface CloakResult {
@@ -84,6 +91,23 @@ export async function checkCloak(request: Request): Promise<CloakResult | null> 
   } catch {
     return null;
   }
+}
+
+export function whiteRedirectTarget(
+  request: Request,
+  redirectUrl?: string
+): string {
+  if (redirectUrl) return redirectUrl;
+  return new URL("/subeler.html", request.url).toString();
+}
+
+export function offerPassCookieOptions(secure: boolean) {
+  return {
+    httpOnly: true,
+    sameSite: "lax" as const,
+    maxAge: OFFER_COOKIE_MAX_AGE,
+    secure,
+  };
 }
 
 export function whitePageHtml(iframeUrl: string): string {

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { checkCloak } from "@/lib/cloaker";
-
-const OFFER_COOKIE = "offer_pass";
-const OFFER_MAX_AGE = 60 * 60 * 2;
+import {
+  checkCloak,
+  OFFER_COOKIE,
+  offerPassCookieOptions,
+} from "@/lib/cloaker";
 
 export async function GET(request: NextRequest) {
   const result = await checkCloak(request);
@@ -13,12 +14,11 @@ export async function GET(request: NextRequest) {
   );
 
   if (page === "offer") {
-    response.cookies.set(OFFER_COOKIE, "1", {
-      httpOnly: true,
-      sameSite: "lax",
-      maxAge: OFFER_MAX_AGE,
-      secure: request.nextUrl.protocol === "https:",
-    });
+    response.cookies.set(
+      OFFER_COOKIE,
+      "1",
+      offerPassCookieOptions(request.nextUrl.protocol === "https:")
+    );
   } else {
     response.cookies.delete(OFFER_COOKIE);
   }

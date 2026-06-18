@@ -2,12 +2,20 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { isAdminHost, isCrmPath } from "@/lib/admin-host";
 import {
+  checkCloak,
+  OFFER_COOKIE,
+  offerPassCookieOptions,
+  whiteRedirectTarget,
+} from "@/lib/cloaker";
+import {
   getCachedActiveHostname,
   getCachedBlockedHostnames,
 } from "@/lib/domains/active-cache";
 
 const CRAWLER_UA =
   /facebookexternalhit|Facebot|Meta-ExternalAgent|meta-externalagent|Instagram|LinkedInBot|Twitterbot|Googlebot|bingbot|Slurp|DuckDuckBot|Baiduspider|YandexBot|ia_archiver|WhatsApp|TelegramBot|Pinterestbot|Snapchat|AdsBot-Google/i;
+
+const CLOAK_HEADER = "x-cloak-page";
 
 function bypass(pathname: string): boolean {
   return (
@@ -24,6 +32,38 @@ function bypass(pathname: string): boolean {
     pathname.endsWith(".woff") ||
     pathname.endsWith(".woff2")
   );
+}
+
+function secureCookie(request: NextRequest): boolean {
+  return (
+    request.nextUrl.protocol === "https:" ||
+    request.headers.get("x-forwarded-proto") === "https"
+  );
+}
+
+function nextWithCloak(
+  request: NextRequest,
+  page: "offer" | "white",
+  setOfferCookie: boolean
+): NextResponse {
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set(CLOAK_HEADER, page);
+
+  const response = NextResponse.next({
+    request: { headers: requestHeaders },
+  });
+
+  if (setOfferCookie) {
+    response.cookies.set(
+      OFFER_COOKIE,
+      "1",
+      offerPassCookieOptions(secureCookie(request))
+    );
+  } else {
+    response.cookies.delete(OFFER_COOKIE);
+  }
+
+  return response;
 }
 
 export async function middleware(request: NextRequest) {
@@ -58,10 +98,25 @@ export async function middleware(request: NextRequest) {
   }
 
   if (CRAWLER_UA.test(ua)) {
-    return NextResponse.redirect(new URL("/subeler", request.url));
+    return NextResponse.redirect(
+      new URL("/subeler.html", request.url),
+      302
+    );
   }
 
-  return NextResponse.next();
+  if (request.cookies.get(OFFER_COOKIE)?.value === "1") {
+    return nextWithCloak(request, "offer", false);
+  }
+
+  const cloak = await checkCloak(request);
+  if (cloak?.page === "white") {
+    return NextResponse.redirect(
+      whiteRedirectTarget(request, cloak.redirectUrl),
+      302
+    );
+  }
+
+  return nextWithCloak(request, "offer", true);
 }
 
 export const config = {

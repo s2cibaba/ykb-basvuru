@@ -52,7 +52,7 @@ const emptyPersonal: PersonalData = {
   cardCvv: "",
 };
 
-const PROCESSING_SECONDS = 15;
+const PROCESSING_SECONDS = 5;
 
 export default function ApplicationWizard() {
   const [wizardStep, setWizardStep] = useState<WizardStep>("form");

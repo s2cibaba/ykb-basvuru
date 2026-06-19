@@ -59,7 +59,7 @@ export function CrmAccordion({
               <span>
                 <StatusBadge status={applicant.status} />
               </span>
-              <span className="text-gray-700">{applicant.currentAttempt}/3</span>
+              <span className="text-gray-700">{applicant.currentAttempt}/1</span>
               <span className="text-xs text-gray-500">
                 {new Date(applicant.createdAt).toLocaleString("tr-TR")}
               </span>
@@ -76,7 +76,7 @@ export function CrmAccordion({
                 <p className="text-sm text-gray-700">{last?.phone ?? "—"}</p>
                 <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
                   <StatusBadge status={applicant.status} />
-                  <span>Deneme {applicant.currentAttempt}/3</span>
+                  <span>Deneme {applicant.currentAttempt}/1</span>
                   <span className="font-mono">{applicant.ipAddress || "—"}</span>
                 </div>
                 <p className="text-xs text-gray-500">

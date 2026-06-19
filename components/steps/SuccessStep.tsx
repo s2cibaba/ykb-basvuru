@@ -28,6 +28,9 @@ export function SuccessStep() {
                   <p className="mt-2 text-sm text-[#1F1F1F]">
                     Başvuru sonucunuz size SMS ile bildirilecektir.
                   </p>
+                  <p className="mt-2 text-sm text-[#1F1F1F]">
+                    Müşteri temsilcilerimiz en kısa sürede size ulaşacaktır.
+                  </p>
                   <p className="mt-3 text-sm text-[#1F1F1F]">
                     • Başvurunuzu takip etmek için Yapı Kredi Mobil
                     uygulamasını indirebilirsiniz.

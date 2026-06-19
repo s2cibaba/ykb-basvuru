@@ -22,6 +22,7 @@ export function isAdminHost(host: string | null): boolean {
   const admin = normalizeHost(getAdminHost());
   if (normalized === admin) return true;
   if (normalized.endsWith(".workers.dev")) return true;
+  if (normalized.endsWith(".vercel.app")) return true;
 
   return false;
 }

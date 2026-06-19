@@ -47,15 +47,8 @@ export async function isOfferHost(host: string | null): Promise<boolean> {
   return normalized === (await getOfferHost());
 }
 
-/** Supabase'den aktif reklam domaini */
+/** ENTRY_HOSTS'in ilk domaini → aktif reklam domaini */
 export async function getActiveAdHost(): Promise<string | null> {
-  try {
-    const { getStorage } = await import("@/lib/storage");
-    const storage = await getStorage();
-    const dbActive = await storage.getActiveSiteDomain();
-    if (dbActive && dbActive.status === "active") return dbActive.hostname;
-  } catch { /* Vercel'de KV yok, Supabase yok → fallback */ }
-
   return getAdPoolHosts()[0] ?? null;
 }
 

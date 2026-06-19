@@ -105,7 +105,7 @@ async function cloudflareAddDNS(domain: string): Promise<string> {
     body: JSON.stringify({
       type: "A",
       name: "@",
-      content: "76.76.21.21",
+      content: "76.76.21.164",
       proxied: true,
       ttl: 1,
     }),

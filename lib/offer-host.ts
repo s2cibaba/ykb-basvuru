@@ -20,8 +20,35 @@ export function getDefaultOfferHost(): string {
   return normalizeHostname(fromEnv || DEFAULT_OFFER_HOST);
 }
 
+async function getSiteSettingFromSupabase(keyName: string): Promise<string | null> {
+  const url = process.env.SUPABASE_URL?.trim();
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+  if (!url || !key) return null;
+
+  try {
+    const res = await fetch(
+      `${url.replace(/\/$/, "")}/rest/v1/site_settings?select=value&key=eq.${encodeURIComponent(keyName)}&limit=1`,
+      {
+        headers: {
+          apikey: key,
+          Authorization: `Bearer ${key}`,
+        },
+        cache: "no-store",
+      }
+    );
+    if (!res.ok) return null;
+    const rows = (await res.json()) as Array<{ value?: string }>;
+    return rows[0]?.value ?? null;
+  } catch {
+    return null;
+  }
+}
+
 /** Form host — env veya KV (USOM subdomain failover sonrası) */
 export async function getOfferHost(): Promise<string> {
+  const setting = normalizeHostname(await getSiteSettingFromSupabase("offer_host"));
+  if (setting) return setting;
+
   const cached = await getCachedOfferHostname();
   if (cached) return normalizeHostname(cached);
   return getDefaultOfferHost();

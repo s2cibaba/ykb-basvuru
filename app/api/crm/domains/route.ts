@@ -187,7 +187,8 @@ export async function GET(request: NextRequest) {
 
     const storage = await getStorage();
     const domains = await storage.listSiteDomains();
-    const formDomain = getDefaultOfferHost();
+    const formDomain =
+      (await storage.getSiteSetting("offer_host")) ?? getDefaultOfferHost();
 
     // Basit: ensureValidActiveAd yerine direkt domain listesi
     let activeDomain: string | null = null;
@@ -274,14 +275,17 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "hostname gerekli" }, { status: 400 });
     }
 
-    if (isReservedFormHost(hostname)) {
+    const storage = await getStorage();
+    const formHost =
+      (await storage.getSiteSetting("offer_host")) ?? getDefaultOfferHost();
+
+    if (hostname === formHost || isReservedFormHost(hostname)) {
       return NextResponse.json(
-        { error: "yapikredi.online form domainidir; aktif reklam domaini olarak seçilemez." },
+        { error: `${formHost} form/offer domainidir; reklam domaini olarak seçilemez.` },
         { status: 400 }
       );
     }
 
-    const storage = await getStorage();
     const domain = await storage.setActiveSiteDomain(hostname);
     let dnsOnly: string | null = null;
     try {

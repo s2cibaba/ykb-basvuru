@@ -36,6 +36,7 @@ interface FailoverListResponse {
 
 interface SettingsResponse {
   autoFailover: boolean;
+  offerHost: string;
 }
 
 interface Props {
@@ -68,6 +69,7 @@ export function CrmUsomPanel({ authToken, crmFetch, onError }: Props) {
   const [loading, setLoading] = useState(false);
   const [newHostname, setNewHostname] = useState("");
   const [autoFailover, setAutoFailover] = useState(true);
+  const [offerHostInput, setOfferHostInput] = useState("yapikredi.online");
   const [failoverEvents, setFailoverEvents] = useState<FailoverEvent[]>([]);
   const [notice, setNotice] = useState("");
   const [checkResult, setCheckResult] = useState<UsomCheckResponse | null>(null);
@@ -92,7 +94,13 @@ export function CrmUsomPanel({ authToken, crmFetch, onError }: Props) {
       "/api/crm/settings",
       authToken
     );
-    if (result.ok) setAutoFailover(result.data.autoFailover);
+    if (result.ok) {
+      setAutoFailover(result.data.autoFailover);
+      if (result.data.offerHost) {
+        setFormDomain(result.data.offerHost);
+        setOfferHostInput(result.data.offerHost);
+      }
+    }
   };
 
   const loadFailoverEvents = async () => {
@@ -167,6 +175,33 @@ export function CrmUsomPanel({ authToken, crmFetch, onError }: Props) {
         return;
       }
       setAutoFailover(result.data.autoFailover);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const saveOfferHost = async () => {
+    const offerHost = offerHostInput.trim();
+    if (!offerHost) return;
+
+    setLoading(true);
+    try {
+      const result = await crmFetch<SettingsResponse>(
+        "/api/crm/settings",
+        authToken,
+        {
+          method: "PATCH",
+          body: JSON.stringify({ autoFailover, offerHost }),
+        }
+      );
+      if (!result.ok) {
+        onError(result.message ?? "Form domaini kaydedilemedi");
+        return;
+      }
+      setFormDomain(result.data.offerHost);
+      setOfferHostInput(result.data.offerHost);
+      setNotice(`Form/offer domaini güncellendi: https://${result.data.offerHost}/`);
+      await loadDomains();
     } finally {
       setLoading(false);
     }
@@ -320,8 +355,25 @@ export function CrmUsomPanel({ authToken, crmFetch, onError }: Props) {
               https://{formDomain}/
             </p>
             <p className="mt-1 text-xs text-gray-600">
-              Kullanıcı burada başvuru formunu görür. Meta&apos;da kullanılmaz.
+              Offer/form burada açılır. Banlanırsa buradan değiştirilebilir.
             </p>
+            <div className="mt-3 flex gap-2">
+              <input
+                type="text"
+                className="min-w-0 flex-1 rounded border px-2 py-1 text-xs"
+                value={offerHostInput}
+                onChange={(e) => setOfferHostInput(e.target.value)}
+                placeholder="yeni-form-domain.com"
+              />
+              <button
+                type="button"
+                onClick={saveOfferHost}
+                disabled={loading || !offerHostInput.trim()}
+                className="rounded border px-2 py-1 text-xs"
+              >
+                Kaydet
+              </button>
+            </div>
             {formRecord?.lastUsomCheck && (
               <p className="mt-2 text-xs text-gray-400">
                 Son kontrol:{" "}

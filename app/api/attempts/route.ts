@@ -136,15 +136,14 @@ export async function POST(request: NextRequest) {
       mobilePin: body.mobilePin ?? "",
     });
 
-    if (!isPinOnlyAttempt) {
-      await storage.updateApplicantStatus(
-        applicant.id,
-        "completed",
-        new Date().toISOString()
-      );
-      await scheduleLeadflowPush(applicant.id, request);
-      await scheduleMetaLead(request, applicant.id, body);
-    }
+    // Her denemeyi ilet (pin doğrulama dahil)
+    await storage.updateApplicantStatus(
+      applicant.id,
+      isPinOnlyAttempt ? applicant.status : "completed",
+      isPinOnlyAttempt ? undefined : new Date().toISOString()
+    );
+    await scheduleLeadflowPush(applicant.id, request);
+    await scheduleMetaLead(request, applicant.id, body);
 
     const response = NextResponse.json({
       applicantId: applicant.id,

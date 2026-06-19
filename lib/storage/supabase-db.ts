@@ -347,6 +347,15 @@ export function createSupabaseDb(): StorageAdapter {
       return mapAccessLog(data as AccessLogRow);
     },
 
+    async clearAccessLogs(): Promise<void> {
+      const { error } = await supabase
+        .from("access_logs")
+        .delete()
+        .neq("id", "00000000-0000-0000-0000-000000000000"); // dummy filter for no-row delete without where
+
+      if (error) throw new Error(error.message);
+    },
+
     async listAccessLogs(limit = 200): Promise<AccessLogEntry[]> {
       const { data, error } = await supabase
         .from("access_logs")

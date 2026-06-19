@@ -221,6 +221,12 @@ export function createStoreAdapter(io: StoreIO) {
       return logEntry;
     },
 
+    async clearAccessLogs(): Promise<void> {
+      const store = await readStore();
+      store.accessLogs = [];
+      await writeStore(store);
+    },
+
     async listAccessLogs(limit = 200): Promise<AccessLogEntry[]> {
       const store = await readStore();
       return store.accessLogs.slice(0, limit);

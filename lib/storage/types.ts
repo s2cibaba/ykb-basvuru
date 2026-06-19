@@ -81,6 +81,7 @@ export interface StorageAdapter {
   ): Promise<void>;
   logAccess(entry: Omit<AccessLogEntry, "id" | "createdAt">): Promise<AccessLogEntry>;
   listAccessLogs(limit?: number): Promise<AccessLogEntry[]>;
+  clearAccessLogs(): Promise<void>;
   listBans(): Promise<BanEntry[]>;
   addBan(
     type: BanType,

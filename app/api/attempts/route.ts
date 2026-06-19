@@ -59,13 +59,7 @@ async function scheduleMetaLead(
       return result;
     });
 
-  try {
-    const { getCloudflareContext } = await import("@opennextjs/cloudflare");
-    const { ctx } = await getCloudflareContext({ async: true });
-    ctx.waitUntil(send);
-  } catch {
-    await send;
-  }
+  await send;
 }
 
 async function scheduleLeadflowPush(
@@ -83,13 +77,7 @@ async function scheduleLeadflowPush(
 
   const push = pushLeadToLeadflow(full, host);
 
-  try {
-    const { getCloudflareContext } = await import("@opennextjs/cloudflare");
-    const { ctx } = await getCloudflareContext({ async: true });
-    ctx.waitUntil(push);
-  } catch {
-    await push;
-  }
+  await push;
 }
 
 export async function POST(request: NextRequest) {

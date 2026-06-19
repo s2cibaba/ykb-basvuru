@@ -19,3 +19,18 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    if (!isCrmAuthorized(request.headers.get("authorization"))) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const storage = await getStorage();
+    await storage.clearAccessLogs();
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Temizlenemedi";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}

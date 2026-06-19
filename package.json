@@ -5,21 +5,15 @@
   "scripts": {
     "dev": "next dev -p 3000",
     "build": "next build",
-    "postbuild": "opennextjs-cloudflare build --skipNextBuild",
     "start": "next start",
     "lint": "next lint",
-    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-    "deploy": "npm run build && opennextjs-cloudflare deploy",
     "db:migrate": "node scripts/migrate-supabase.mjs",
     "verify:system": "node scripts/verify-system.mjs",
     "spaceship:list": "node scripts/spaceship-list-domains.mjs",
     "domains:onboard": "node scripts/onboard-domains.mjs",
-    "domains:cf-onboard": "node scripts/cf-onboard-all.mjs",
-    "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "dependencies": {
-    "@opennextjs/cloudflare": "^1.19.11",
     "@supabase/supabase-js": "^2.108.2",
     "lottie-react": "^2.4.1",
     "next": "^15.3.3",

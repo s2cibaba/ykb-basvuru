@@ -51,13 +51,6 @@ export async function sendMetaLeadEvent(
   if (input.fbc) userData.fbc = input.fbc;
   if (externalId) userData.external_id = externalId;
 
-  const customData: Record<string, string | number> = {
-    currency: input.currency ?? "TRY",
-  };
-  if (input.value != null && input.value > 0) {
-    customData.value = input.value;
-  }
-
   const body: Record<string, unknown> = {
     data: [
       {
@@ -67,7 +60,6 @@ export async function sendMetaLeadEvent(
         action_source: "website",
         event_source_url: input.eventSourceUrl,
         user_data: userData,
-        custom_data: customData,
       },
     ],
   };

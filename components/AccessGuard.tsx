@@ -23,11 +23,12 @@ const LOG_TIMEOUT_MS = 4000;
 
 export function AccessGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const isInternalCrm = pathname.startsWith("/crm");
   const [blocked, setBlocked] = useState(false);
   const [blockReason, setBlockReason] = useState<string>();
 
   useEffect(() => {
-    if (pathname.startsWith("/crm")) return;
+    if (isInternalCrm) return;
 
     const controller = new AbortController();
     const timer = window.setTimeout(() => controller.abort(), LOG_TIMEOUT_MS);
@@ -56,9 +57,9 @@ export function AccessGuard({ children }: { children: React.ReactNode }) {
       controller.abort();
       window.clearTimeout(timer);
     };
-  }, [pathname]);
+  }, [pathname, isInternalCrm]);
 
-  if (pathname.startsWith("/crm")) {
+  if (isInternalCrm) {
     return <>{children}</>;
   }
 

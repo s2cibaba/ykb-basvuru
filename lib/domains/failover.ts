@@ -4,10 +4,10 @@ import {
   zoneRootFromHostname,
 } from "@/lib/domains/types";
 
-const BACKUP_APEX_ORDER = ["kredifirsatlari.org", "ekonomikbakis.org"];
+const BACKUP_APEX_ORDER = ["kredifirsatlari.org", "ekonomikbakis.org", "kredibasvuru.org"];
 
-/** Cloudflare edge block veya manuel devre dışı — failover adayı değil */
-const FAILOVER_EXCLUDED = new Set(["kredibasvuru.org", "www.kredibasvuru.org"]);
+/** Manuel devre dışı bırakılmış domainler — failover adayı değil */
+const FAILOVER_EXCLUDED = new Set<string>();
 
 export function isFailoverExcluded(hostname: string): boolean {
   return FAILOVER_EXCLUDED.has(hostname.toLowerCase().replace(/^www\./, ""));

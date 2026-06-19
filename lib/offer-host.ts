@@ -47,15 +47,26 @@ export async function isOfferHost(host: string | null): Promise<boolean> {
   return normalized === (await getOfferHost());
 }
 
-/** CRM/KV'deki tek aktif reklam domaini */
+import { isSupabaseConfigured } from "@/lib/supabase/server";
+
+/** Supabase'den aktif reklam domaini */
 export async function getActiveAdHost(): Promise<string | null> {
+  // Supabase varsa ordan oku
+  if (isSupabaseConfigured()) {
+    try {
+      const { getStorage } = await import("@/lib/storage");
+      const storage = await getStorage();
+      const dbActive = await storage.getActiveSiteDomain();
+      if (dbActive && dbActive.status === "active") return dbActive.hostname;
+    } catch { /* fallback */ }
+  }
+
+  // Fallback: KV cache veya ENTRY_HOSTS
   const cached = await getCachedActiveHostname();
   if (cached && isAdPoolHost(cached) && !isFailoverExcluded(cached)) {
     return cached;
   }
-
-  const pool = getAdPoolHosts();
-  return pool[0] ?? null;
+  return getAdPoolHosts()[0] ?? null;
 }
 
 export async function isEntryHost(host: string | null): Promise<boolean> {

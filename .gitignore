@@ -8,3 +8,5 @@ out
 data/store.json
 *.png
 !public/assets/bik-banner.png
+
+.vercel

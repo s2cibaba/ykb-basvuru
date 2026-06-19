@@ -256,24 +256,7 @@ export async function PATCH(request: NextRequest) {
 
     const storage = await getStorage();
     const domain = await storage.setActiveSiteDomain(hostname);
-
-    // ENTRY_HOSTS'i güncelle: aktif domaini ilk sıraya koy
-    const currentHosts = getAdPoolHosts();
-    const reordered = [hostname, ...currentHosts.filter(h => h !== hostname)].join(",");
-    const data = await vercelApi("/v9/projects?search=ykb-basvuru") as { projects?: Array<{ id: string; name: string }> };
-    const projectId = data.projects?.find((p) => p.name === "ykb-basvuru")?.id;
-    if (projectId) {
-      const envData = await vercelApi(`/v9/projects/${projectId}/env`) as { envs?: Array<{ id: string; key: string }> };
-      const env = envData.envs?.find((e) => e.key === "ENTRY_HOSTS");
-      if (env) {
-        await vercelApi(`/v10/projects/${projectId}/env/${env.id}`, {
-          method: "PATCH",
-          body: JSON.stringify({ value: reordered, type: "encrypted", target: ["production", "preview", "development"] }),
-        });
-      }
-    }
-
-    return NextResponse.json({ ...domain, entryHostsUpdated: reordered });
+    return NextResponse.json(domain);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Aktif domain değiştirilemedi";
     return NextResponse.json({ error: message }, { status: 500 });

@@ -5,12 +5,27 @@ import type { SiteDomain } from "@/lib/domains/types";
 import { getAdPoolHosts, getDefaultOfferHost } from "@/lib/offer-host";
 import type { StorageAdapter } from "@/lib/storage/types";
 
-/** Cloaker'ın kullandığı host — ENTRY_HOSTS + KV (DB'den bağımsız) */
+import { getStorage } from "@/lib/storage";
+
+/** Cloaker'ın kullandığı host — Supabase site_domains'den */
 export async function getOperationalActiveAdHostname(): Promise<string | null> {
-  const pool = getAdPoolHosts().filter((h) => !isFailoverExcluded(h));
-  const cached = await getCachedActiveHostname();
-  if (cached && pool.includes(cached)) return cached;
-  return pool[0] ?? null;
+  try {
+    const storage = await getStorage();
+    const dbActive = await storage.getActiveSiteDomain();
+    if (dbActive && dbActive.status === "active") return dbActive.hostname;
+
+    // Fallback: ilk eligible domain
+    const domains = await storage.listSiteDomains();
+    const formHost = getDefaultOfferHost();
+    const pool = getAdPoolHosts();
+    for (const d of domains) {
+      if (d.hostname === formHost) continue;
+      if (d.status === "active" && pool.includes(d.hostname)) return d.hostname;
+    }
+    return pool[0] ?? null;
+  } catch {
+    return getAdPoolHosts()[0] ?? null;
+  }
 }
 
 export async function ensureValidActiveAd(

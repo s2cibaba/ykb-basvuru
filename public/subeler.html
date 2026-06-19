@@ -3,144 +3,210 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>En Yakın Yapı Kredi Şubesi | Şube ve ATM</title>
-  <meta name="description" content="Yapı Kredi şubeleri ve iletişim bilgileri. İstanbul, Ankara, İzmir ve tüm Türkiye şube adresleri." />
+  <title>Kredi Bilgi Merkezi | Kredi Türleri, Faiz ve Başvuru Rehberi</title>
+  <meta name="description" content="Türkiye'de ihtiyaç, konut ve taşıt kredisi hakkında genel bilgilendirme. Faiz oranları, başvuru süreci, BDDK düzenlemeleri ve banka şube rehberi." />
   <meta name="robots" content="index, follow" />
-  <link rel="canonical" href="https://yapikredi.online/subeler.html" />
-  <meta property="og:type" content="website" />
-  <meta property="og:locale" content="tr_TR" />
-  <meta property="og:site_name" content="Yapı Kredi" />
-  <meta property="og:title" content="En Yakın Yapı Kredi Şubesi | Şube ve ATM" />
-  <meta property="og:description" content="İstanbul, Ankara, İzmir ve Türkiye genelindeki Yapı Kredi şubelerinin adres ve iletişim bilgileri." />
-  <meta property="og:url" content="https://yapikredi.online/subeler.html" />
-  <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="En Yakın Yapı Kredi Şubesi" />
-  <meta name="twitter:description" content="Yapı Kredi şube ve ATM bilgileri." />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: Ubuntu, "Segoe UI", Arial, sans-serif;
-      color: #1f1f1f;
-      background: #f5f7fa;
-      line-height: 1.5;
+      font-family: "Segoe UI", Ubuntu, Arial, sans-serif;
+      color: #1a2332;
+      background: #f4f6f9;
+      line-height: 1.6;
     }
-    a { color: inherit; text-decoration: none; }
-    .top-bar {
-      background: #1366b2;
-      color: #fff;
+    a { color: #0d6e9c; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .notice {
+      background: #fff8e6;
+      border-bottom: 1px solid #f0dfa0;
+      padding: 8px 16px;
       font-size: 12px;
-      padding: 6px 16px;
-      text-align: right;
+      color: #6b5a1e;
+      text-align: center;
     }
-    .top-bar a { color: #fff; margin-left: 16px; }
-    .top-bar a:hover { text-decoration: underline; }
     header {
-      background: #1366b2;
-      border-bottom: 3px solid #0aa3f1;
+      background: linear-gradient(135deg, #0f3d5c 0%, #1565a8 100%);
+      color: #fff;
+      box-shadow: 0 2px 12px rgba(15,61,92,.15);
     }
     .header-inner {
       max-width: 1100px;
       margin: 0 auto;
-      padding: 16px 20px 0;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
+      padding: 18px 20px 0;
     }
-    .logo img { height: 30px; width: auto; display: block; }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .brand-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      background: rgba(255,255,255,.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+    .brand h1 { font-size: 20px; font-weight: 600; }
+    .brand p { font-size: 13px; opacity: .85; }
     nav {
       display: flex;
       flex-wrap: wrap;
       gap: 4px;
-      width: 100%;
-      border-top: 1px solid rgba(255,255,255,.2);
-      margin-top: 14px;
+      border-top: 1px solid rgba(255,255,255,.15);
       padding-bottom: 0;
     }
     nav a {
       color: #fff;
-      padding: 12px 18px;
+      padding: 12px 16px;
       font-size: 14px;
       font-weight: 500;
       border-bottom: 3px solid transparent;
-      transition: border-color .2s, background .2s;
     }
     nav a:hover, nav a.active {
       background: rgba(255,255,255,.08);
-      border-bottom-color: #fff;
+      border-bottom-color: #7dd3fc;
+      text-decoration: none;
     }
     .hero {
-      background: linear-gradient(135deg, #004990 0%, #1366b2 100%);
-      color: #fff;
-      padding: 36px 20px 42px;
+      background: #fff;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 32px 20px;
     }
     .hero-inner { max-width: 1100px; margin: 0 auto; }
-    .hero h1 { font-size: 28px; font-weight: 500; margin-bottom: 8px; }
-    .hero p { font-size: 15px; opacity: .92; max-width: 640px; }
+    .hero h2 { font-size: 26px; color: #0f3d5c; margin-bottom: 10px; font-weight: 600; }
+    .hero p { font-size: 15px; color: #475569; max-width: 720px; }
     .container { max-width: 1100px; margin: 0 auto; padding: 28px 20px 48px; }
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 12px;
-      margin-bottom: 28px;
+    .section-title {
+      font-size: 20px;
+      color: #0f3d5c;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #e2e8f0;
     }
-    .stat {
-      background: #fff;
-      border: 1px solid #e3e8ef;
-      border-radius: 8px;
-      padding: 16px;
-      text-align: center;
-    }
-    .stat strong { display: block; font-size: 24px; color: #004990; }
-    .stat span { font-size: 13px; color: #60646c; }
-    .branch-grid {
+    .grid-3 {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       gap: 16px;
+      margin-bottom: 36px;
     }
-    .branch-card {
+    .card {
       background: #fff;
-      border: 1px solid #e3e8ef;
-      border-radius: 8px;
-      padding: 18px 20px;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 20px;
       transition: box-shadow .2s;
     }
-    .branch-card:hover { box-shadow: 0 4px 16px rgba(0,73,144,.1); }
-    .branch-card h3 { font-size: 16px; color: #004990; margin-bottom: 4px; }
-    .branch-card .district {
-      font-size: 12px;
-      color: #0aa3f1;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: .03em;
-      margin-bottom: 10px;
-    }
-    .branch-card p { font-size: 13px; color: #444; margin-bottom: 6px; }
-    .branch-card .label { color: #888; }
-    .contact-strip {
-      background: #fff;
-      border: 1px solid #e3e8ef;
-      border-radius: 8px;
+    .card:hover { box-shadow: 0 6px 20px rgba(15,61,92,.08); }
+    .card-icon { font-size: 28px; margin-bottom: 10px; }
+    .card h3 { font-size: 17px; color: #0f3d5c; margin-bottom: 8px; }
+    .card p { font-size: 14px; color: #475569; }
+    .card ul { margin-top: 10px; padding-left: 18px; font-size: 13px; color: #64748b; }
+    .card li { margin-bottom: 4px; }
+    .info-box {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 10px;
       padding: 20px 24px;
-      margin-bottom: 28px;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      margin-bottom: 36px;
+    }
+    .info-box h3 { color: #1e40af; font-size: 16px; margin-bottom: 10px; }
+    .info-box p, .info-box li { font-size: 14px; color: #334155; }
+    .info-box ul { padding-left: 20px; margin-top: 8px; }
+    .faq { margin-bottom: 36px; }
+    .faq-item {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      overflow: hidden;
+    }
+    .faq-q {
+      width: 100%;
+      text-align: left;
+      padding: 14px 18px;
+      font-size: 15px;
+      font-weight: 600;
+      color: #0f3d5c;
+      background: #fff;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .faq-q:hover { background: #f8fafc; }
+    .faq-a {
+      display: none;
+      padding: 0 18px 14px;
+      font-size: 14px;
+      color: #475569;
+    }
+    .faq-item.open .faq-a { display: block; }
+    .faq-item.open .faq-q span { transform: rotate(180deg); }
+    .bank-section {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 36px;
+    }
+    .bank-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
       gap: 16px;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #e2e8f0;
     }
-    .contact-strip h2 {
-      grid-column: 1 / -1;
-      font-size: 18px;
-      color: #004990;
-      margin-bottom: 4px;
+    .bank-header img { height: 28px; }
+    .bank-header h3 { font-size: 18px; color: #004990; }
+    .bank-header p { font-size: 13px; color: #64748b; flex: 1 1 100%; }
+    .city-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+    .city-tabs button {
+      padding: 8px 16px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      background: #fff;
+      font-size: 13px;
+      cursor: pointer;
+      color: #334155;
     }
-    .contact-item strong { display: block; font-size: 13px; color: #004990; margin-bottom: 4px; }
-    .contact-item span, .contact-item a { font-size: 14px; color: #333; }
-    .contact-item a:hover { text-decoration: underline; }
-    footer {
-      background: #0455a5;
+    .city-tabs button.active, .city-tabs button:hover {
+      background: #004990;
       color: #fff;
-      padding: 28px 20px;
+      border-color: #004990;
+    }
+    .branch-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 12px;
+    }
+    .branch-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-size: 13px;
+    }
+    .branch-card h4 { font-size: 15px; color: #004990; margin-bottom: 4px; }
+    .branch-card .tag { font-size: 11px; color: #0aa3f1; font-weight: 600; text-transform: uppercase; margin-bottom: 6px; }
+    .branch-card .muted { color: #94a3b8; }
+    .contact-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+    .contact-row strong { display: block; color: #004990; font-size: 13px; margin-bottom: 4px; }
+    footer {
+      background: #0f2940;
+      color: rgba(255,255,255,.85);
+      padding: 32px 20px;
       font-size: 12px;
     }
     .footer-inner {
@@ -150,126 +216,293 @@
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 24px;
     }
-    .footer-inner h4 { font-size: 13px; margin-bottom: 10px; font-weight: 600; }
-    .footer-inner p, .footer-inner a {
-      display: block;
-      color: rgba(255,255,255,.9);
-      margin-bottom: 6px;
-      font-size: 12px;
-    }
-    .footer-inner a:hover { text-decoration: underline; }
+    .footer-inner h4 { color: #fff; font-size: 13px; margin-bottom: 10px; }
+    .footer-inner p, .footer-inner a { display: block; margin-bottom: 6px; color: rgba(255,255,255,.75); }
     .footer-bottom {
       max-width: 1100px;
       margin: 20px auto 0;
       padding-top: 16px;
-      border-top: 1px solid rgba(255,255,255,.2);
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      gap: 8px;
+      border-top: 1px solid rgba(255,255,255,.15);
+      text-align: center;
+      color: rgba(255,255,255,.5);
     }
-    .hidden { display: none !important; }
     @media (max-width: 640px) {
-      .hero h1 { font-size: 22px; }
+      .hero h2 { font-size: 22px; }
       nav a { padding: 10px 12px; font-size: 13px; }
     }
   </style>
 </head>
 <body>
-  <div class="top-bar">
-    <span>Müşteri İletişim Merkezi: <strong>444 0 444</strong></span>
-    <a href="tel:4440444">Ara</a>
-    <a href="#iletisim">İletişim</a>
+  <div class="notice">
+    Bu site yalnızca genel bilgilendirme amaçlıdır; kredi teklifi veya bankacılık hizmeti sunmaz. Resmi başvurular için ilgili bankanın kanallarını kullanın.
   </div>
 
   <header>
     <div class="header-inner">
-      <a href="#" class="logo">
-        <img src="/assets/ykb-logo.svg" alt="Yapı ve Kredi Bankası" />
-      </a>
+      <div class="brand">
+        <div class="brand-icon" aria-hidden="true">₺</div>
+        <div>
+          <h1>Kredi Bilgi Merkezi</h1>
+          <p>Türkiye'de kredi türleri, faiz ve başvuru süreçleri hakkında bağımsız rehber</p>
+        </div>
+      </div>
       <nav>
-        <a href="#" data-city="istanbul" class="active">İstanbul</a>
-        <a href="#" data-city="ankara">Ankara</a>
-        <a href="#" data-city="izmir">İzmir</a>
-        <a href="#" data-city="all">Tüm Şubeler</a>
+        <a href="#rehber" class="active">Kredi Türleri</a>
+        <a href="#faiz">Faiz &amp; Maliyet</a>
+        <a href="#basvuru">Başvuru İpuçları</a>
+        <a href="#sss">S.S.S.</a>
+        <a href="#bankalar">Banka Rehberi</a>
       </nav>
     </div>
   </header>
 
   <section class="hero">
     <div class="hero-inner">
-      <h1>En Yakın Yapı Kredi Şubesi</h1>
-      <p>İstanbul, Ankara ve İzmir başta olmak üzere Türkiye genelindeki şubelerimizin adres ve iletişim bilgilerine buradan ulaşabilirsiniz.</p>
+      <h2>Kredi hakkında bilmeniz gerekenler</h2>
+      <p>
+        İhtiyaç, konut veya taşıt kredisi düşünüyorsanız; faiz oranı, vade, dosya masrafı ve geri ödeme
+        planını karşılaştırmak önemlidir. Aşağıda Türkiye'deki yaygın kredi ürünleri ve başvuru sürecine
+        dair genel bilgileri bulabilirsiniz.
+      </p>
     </div>
   </section>
 
   <main class="container">
-    <div class="stats" id="stats"></div>
+    <section id="rehber">
+      <h2 class="section-title">Kredi türleri</h2>
+      <div class="grid-3">
+        <article class="card">
+          <div class="card-icon" aria-hidden="true">💳</div>
+          <h3>İhtiyaç (bireysel) kredisi</h3>
+          <p>Tüketim, eğitim, sağlık veya borç kapatma gibi amaçlarla kullanılan, genelde 3–36 ay vadeli nakit kredilerdir.</p>
+          <ul>
+            <li>Faiz sabit veya değişken olabilir</li>
+            <li>BSMV ve KKDF maliyete eklenir</li>
+            <li>Erken kapama komisyonu uygulanabilir</li>
+          </ul>
+        </article>
+        <article class="card">
+          <div class="card-icon" aria-hidden="true">🏠</div>
+          <h3>Konut kredisi</h3>
+          <p>Tapuya ipotek konularak verilen, uzun vadeli (5–10 yıl ve üzeri) mortgage tipi kredilerdir.</p>
+          <ul>
+            <li>Peşinat oranı bankaya göre değişir</li>
+            <li>Sigorta (DASK, hayat) zorunluluğu olabilir</li>
+            <li>Faiz oranı piyasa koşullarına bağlıdır</li>
+          </ul>
+        </article>
+        <article class="card">
+          <div class="card-icon" aria-hidden="true">🚗</div>
+          <h3>Taşıt (otomobil) kredisi</h3>
+          <p>Sıfır veya ikinci el araç alımında kullanılan, aracın rehin edildiği kredi türüdür.</p>
+          <ul>
+            <li>Araç yaşı ve km sınırı olabilir</li>
+            <li>Kasko sigortası istenebilir</li>
+            <li>Vade genelde 12–48 ay arasındadır</li>
+          </ul>
+        </article>
+        <article class="card">
+          <div class="card-icon" aria-hidden="true">📊</div>
+          <h3>Kredi kartı &amp; limit</h3>
+          <p>Revolving kredi niteliğindedir; asgari ödeme yapılsa bile kalan bakiye faiz işletir.</p>
+          <ul>
+            <li>Aylık kart aidatı ve gecikme faizi</li>
+            <li>Taksitli nakit avans seçenekleri</li>
+            <li>Limit artışı gelir belgesine bağlıdır</li>
+          </ul>
+        </article>
+        <article class="card">
+          <div class="card-icon" aria-hidden="true">🏢</div>
+          <h3>KOBİ / esnaf kredisi</h3>
+          <p>İşletme sermayesi, makine yatırımı veya KOSGEB destekli programlar kapsamında kullanılır.</p>
+          <ul>
+            <li>Finansal tablolar ve iş planı istenebilir</li>
+            <li>Teminat ve kefil şartları değişkendir</li>
+            <li>Devlet destekli faiz indirimi programları mevcuttur</li>
+          </ul>
+        </article>
+        <article class="card">
+          <div class="card-icon" aria-hidden="true">🔄</div>
+          <h3>Borç yapılandırma</h3>
+          <p>Mevcut kredilerin tek çatı altında toplanması veya vade uzatımı ile aylık yükün azaltılmasıdır.</p>
+          <ul>
+            <li>Toplam maliyet uzun vadede artabilir</li>
+            <li>Kredi notu ve gelir durumu değerlendirilir</li>
+            <li>Bankalar arası transfer mümkün olabilir</li>
+          </ul>
+        </article>
+      </div>
+    </section>
 
-    <div class="contact-strip" id="iletisim">
-      <h2>İletişim Bilgileri</h2>
-      <div class="contact-item">
-        <strong>Bireysel Müşteri İletişim Merkezi</strong>
-        <a href="tel:4440444">444 0 444</a>
-        <span> / </span>
-        <a href="tel:08502220444">0850 222 0 444</a>
-        <span> — 7/24</span>
+    <section id="faiz">
+      <h2 class="section-title">Faiz oranı ve toplam maliyet</h2>
+      <div class="info-box">
+        <h3>Yıllık maliyet oranı (YMO / APR) nedir?</h3>
+        <p>
+          Bankaların duyurduğu aylık faiz oranı tek başına yeterli değildir. Dosya masrafı, sigorta,
+          ekspertiz ücreti ve vergiler dahil <strong>yıllık maliyet oranı</strong> gerçek ödemeyi gösterir.
+          BDDK düzenlemeleri gereği tüketici kredilerinde bu oran sözleşmede açıkça belirtilmelidir.
+        </p>
+        <ul>
+          <li><strong>2024–2026 dönemi:</strong> TCMB politika faizi ve enflasyon beklentisi tüketici kredi faizlerini doğrudan etkiler.</li>
+          <li><strong>Sabit faiz:</strong> Vade boyunca aynı taksit; bütçe planlaması kolay.</li>
+          <li><strong>Değişken faiz:</strong> Endekse bağlı; düşüşte avantaj, yükselişte risk taşır.</li>
+          <li><strong>Erken ödeme:</strong> Kalan anaparaya göre komisyon hesaplanır; sözleşmeyi okuyun.</li>
+        </ul>
       </div>
-      <div class="contact-item">
-        <strong>Kurumsal Müşteri İletişim Merkezi</strong>
-        <a href="tel:4440448">444 0 448</a>
-        <span> / </span>
-        <a href="tel:08502220448">0850 222 0 448</a>
-      </div>
-      <div class="contact-item">
-        <strong>WhatsApp</strong>
-        <a href="https://wa.me/908502224444">+90 850 222 44 44</a>
-      </div>
-      <div class="contact-item">
-        <strong>Genel Müdürlük</strong>
-        <span>Yapı Kredi Plaza D Blok, Büyükdere Cad. 34330 Levent, Beşiktaş / İstanbul</span>
-        <span>Tel: 0212 339 70 00</span>
-      </div>
-    </div>
+    </section>
 
-    <div class="branch-grid" id="branches"></div>
+    <section id="basvuru">
+      <h2 class="section-title">Başvuru öncesi kontrol listesi</h2>
+      <div class="grid-3">
+        <article class="card">
+          <h3>1. Kredi notunuzu öğrenin</h3>
+          <p>Findeks / KKB raporu, bankaların limit ve faiz kararını etkiler. 1–1900 arası skor; yüksek skor daha iyi şartlar sağlayabilir.</p>
+        </article>
+        <article class="card">
+          <h3>2. Gelir belgesi hazırlayın</h3>
+          <p>Maaş bordrosu, SGK hizmet dökümü veya vergi levhası (serbest meslek) talep edilir. Düzenli gelir, onay şansını artırır.</p>
+        </article>
+        <article class="card">
+          <h3>3. Birden fazla teklif alın</h3>
+          <p>Aynı gün içinde birkaç bankadan ön onay almak, faiz karşılaştırması için faydalıdır. Her sorgu kredi notunu kısa süreli etkileyebilir.</p>
+        </article>
+        <article class="card">
+          <h3>4. Sözleşmeyi okuyun</h3>
+          <p>Hayat sigortası zorunluluğu, erken kapama cezası ve otomatik limit artırımı maddelerine dikkat edin.</p>
+        </article>
+        <article class="card">
+          <h3>5. Dolandırıcılığa dikkat</h3>
+          <p>“Kefilsiz, sicil bozukken garanti kredi” vaat eden kişi ve sitelere kişisel bilgi vermeyin. Resmi başvuru yalnızca banka kanallarından yapılır.</p>
+        </article>
+        <article class="card">
+          <h3>6. BDDK tüketici hakları</h3>
+          <p>Mesafeli sözleşmelerde cayma hakkı, bilgilendirme yükümlülüğü ve şikâyet için BDDK tüketici hattı: <strong>0850 222 0 373</strong>.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="sss" class="faq">
+      <h2 class="section-title">Sık sorulan sorular</h2>
+      <div class="faq-item open">
+        <button type="button" class="faq-q" aria-expanded="true">
+          İhtiyaç kredisi ile kredi kartı taksitli avans farkı nedir?
+          <span aria-hidden="true">▼</span>
+        </button>
+        <div class="faq-a">
+          İhtiyaç kredisi tek seferde hesabınıza yatırılır; sabit taksitlidir. Kart taksitli avans mevcut limitinizden kullanılır ve kart faiz yapısına tabidir. Uzun vadede ihtiyaç kredisi genelde daha düşük maliyetli olabilir.
+        </div>
+      </div>
+      <div class="faq-item">
+        <button type="button" class="faq-q" aria-expanded="false">
+          Konut kredisinde kaç yıl vade alınabilir?
+          <span aria-hidden="true">▼</span>
+        </button>
+        <div class="faq-a">
+          Yaş ve gelir durumuna göre değişmekle birlikte birçok bankada 120 aya (10 yıl) kadar vade sunulur. Bazı kampanyalarda daha uzun vadeler görülebilir; toplam faiz maliyetini hesaplayın.
+        </div>
+      </div>
+      <div class="faq-item">
+        <button type="button" class="faq-q" aria-expanded="false">
+          Kredi başvurusu reddedilirse ne yapmalıyım?
+          <span aria-hidden="true">▼</span>
+        </button>
+        <div class="faq-a">
+          Red gerekçesini bankadan öğrenin (gelir yetersiz, skor düşük, mevcut borç yükü). 3–6 ay düzenli ödeme geçmişi oluşturup tekrar başvurabilir veya kefil/teminat sunabilirsiniz.
+        </div>
+      </div>
+      <div class="faq-item">
+        <button type="button" class="faq-q" aria-expanded="false">
+          Faiz oranları neden bankadan bankaya farklı?
+          <span aria-hidden="true">▼</span>
+        </button>
+        <div class="faq-a">
+          Fonlama maliyeti, kampanya dönemleri, müşteri segmenti ve risk primi farklılık yaratır. Dijital bankalar veya maaş müşterisi indirimleri daha düşük oran sunabilir.
+        </div>
+      </div>
+    </section>
+
+    <section id="bankalar" class="bank-section">
+      <div class="bank-header">
+        <img src="/assets/ykb-logo.svg" alt="Yapı Kredi" />
+        <h3>Yapı Kredi şube rehberi</h3>
+        <p>
+          Aşağıda Yapı ve Kredi Bankası'nın İstanbul, Ankara ve İzmir'deki örnek şube iletişim bilgileri
+          yer almaktadır. Güncel şube listesi için
+          <a href="https://www.yapikredi.com.tr" target="_blank" rel="noopener noreferrer">yapikredi.com.tr</a>
+          adresini ziyaret edin.
+        </p>
+      </div>
+
+      <div class="contact-row">
+        <div>
+          <strong>Bireysel müşteri hattı</strong>
+          <a href="tel:4440444">444 0 444</a> / <a href="tel:08502220444">0850 222 0 444</a>
+        </div>
+        <div>
+          <strong>Kurumsal hattı</strong>
+          <a href="tel:4440448">444 0 448</a>
+        </div>
+        <div>
+          <strong>Genel müdürlük</strong>
+          Büyükdere Cad. Levent, İstanbul
+        </div>
+      </div>
+
+      <div class="city-tabs" id="cityTabs">
+        <button type="button" data-city="istanbul" class="active">İstanbul</button>
+        <button type="button" data-city="ankara">Ankara</button>
+        <button type="button" data-city="izmir">İzmir</button>
+        <button type="button" data-city="all">Tümü</button>
+      </div>
+      <div class="branch-grid" id="branches"></div>
+    </section>
+
+    <section>
+      <h2 class="section-title">Diğer bankalar</h2>
+      <div class="grid-3">
+        <article class="card">
+          <h3>Kamu bankaları</h3>
+          <p>Ziraat Bankası, Halkbank, VakıfBank — geniş şube ağı ve kampanyalı konut kredisi seçenekleri.</p>
+        </article>
+        <article class="card">
+          <h3>Özel bankalar</h3>
+          <p>Garanti BBVA, İş Bankası, Akbank, QNB, Denizbank — dijital başvuru ve hızlı onay süreçleri.</p>
+        </article>
+        <article class="card">
+          <h3>Katılım bankaları</h3>
+          <p>Kuveyt Türk, Albaraka, Türkiye Finans — faiz yerine kâr payı modeli ile finansman sunar.</p>
+        </article>
+      </div>
+    </section>
   </main>
 
   <footer>
     <div class="footer-inner">
       <div>
-        <h4>Yapı ve Kredi Bankası A.Ş.</h4>
-        <p>Genel Müdürlük</p>
-        <p>Büyükdere Cad. Yapı Kredi Plaza D Blok</p>
-        <p>34330 Levent, Beşiktaş — İstanbul</p>
-        <p>Tel: 0212 339 70 00</p>
+        <h4>Kredi Bilgi Merkezi</h4>
+        <p>Bağımsız bilgilendirme sitesi</p>
+        <p>Kredi aracılığı veya finansal danışmanlık hizmeti verilmez.</p>
       </div>
       <div>
-        <h4>Müşteri Hizmetleri</h4>
+        <h4>Yasal uyarı</h4>
+        <p>İçerik genel niteliktedir; yatırım veya kredi tavsiyesi değildir.</p>
+        <p>Resmi mevzuat için BDDK ve TCMB kaynaklarına başvurun.</p>
+      </div>
+      <div>
+        <h4>Faydalı linkler</h4>
+        <a href="https://www.bddk.org.tr" target="_blank" rel="noopener">BDDK</a>
+        <a href="https://www.tcmb.gov.tr" target="_blank" rel="noopener">TCMB</a>
+        <a href="https://www.findeks.com" target="_blank" rel="noopener">Findeks (KKB)</a>
+      </div>
+      <div>
+        <h4>Yapı Kredi</h4>
+        <a href="https://www.yapikredi.com.tr" target="_blank" rel="noopener">Resmi web sitesi</a>
         <a href="tel:4440444">444 0 444</a>
-        <a href="tel:08502220444">0850 222 0 444</a>
-        <p>Bireysel — 7 gün 24 saat</p>
-        <a href="tel:4440448">444 0 448</a>
-        <p>Kurumsal</p>
-      </div>
-      <div>
-        <h4>Dijital Bankacılık</h4>
-        <p>Yapı Kredi Mobil</p>
-        <p>İnternet Şubesi</p>
-        <p>WhatsApp Bankacılık</p>
-        <p>ATM ve Şube Hizmetleri</p>
-      </div>
-      <div>
-        <h4>Yasal</h4>
-        <p>©2026 Yapı ve Kredi Bankası A.Ş.</p>
-        <p>Tüm hakları saklıdır.</p>
-        <a href="#">Kişisel Verilerin Korunması</a>
-        <a href="#">Çerez Politikası</a>
       </div>
     </div>
     <div class="footer-bottom">
-      <span>©2026 Yapı ve Kredi Bankası A.Ş.</span>
-      <a href="#iletisim">İletişim</a>
+      © 2026 Kredi Bilgi Merkezi — Tüm hakları saklıdır. Yapı Kredi markası ilgili bankaya aittir.
     </div>
   </footer>
 
@@ -281,70 +514,47 @@
       { city: "istanbul", name: "Bakırköy Şubesi", district: "Bakırköy", address: "İstanbul Caddesi No:78, 34140 Bakırköy", phone: "0212 571 32 44", hours: "09:00 – 17:00" },
       { city: "istanbul", name: "Ümraniye Şubesi", district: "Ümraniye", address: "Alemdağ Cad. No:230, 34768 Ümraniye", phone: "0216 632 18 90", hours: "09:00 – 17:00" },
       { city: "istanbul", name: "Ataşehir Şubesi", district: "Ataşehir", address: "Barbaros Mah. Mor Sümbül Sok. No:7, 34746 Ataşehir", phone: "0216 456 77 12", hours: "09:00 – 17:00" },
-      { city: "istanbul", name: "Fatih Şubesi", district: "Fatih", address: "Vatan Cad. No:98, 34093 Fatih", phone: "0212 528 91 05", hours: "09:00 – 17:00" },
-      { city: "istanbul", name: "Maltepe Şubesi", district: "Maltepe", address: "Bağlarbaşı Cad. No:52, 34844 Maltepe", phone: "0216 441 66 28", hours: "09:00 – 17:00" },
       { city: "ankara", name: "Kızılay Şubesi", district: "Çankaya", address: "Atatürk Bulvarı No:156, 06420 Kızılay", phone: "0312 419 55 40", hours: "09:00 – 17:00" },
       { city: "ankara", name: "Çankaya Şubesi", district: "Çankaya", address: "Tunus Cad. No:32, 06680 Çankaya", phone: "0312 427 18 75", hours: "09:00 – 17:00" },
       { city: "ankara", name: "Ulus Şubesi", district: "Altındağ", address: "Anafartalar Cad. No:58, 06050 Ulus", phone: "0312 310 44 90", hours: "09:00 – 17:00" },
-      { city: "ankara", name: "Bilkent Şubesi", district: "Çankaya", address: "Bilkent Plaza İç Kapı No:12, 06800 Bilkent", phone: "0312 266 33 21", hours: "09:00 – 17:00" },
-      { city: "ankara", name: "Keçiören Şubesi", district: "Keçiören", address: "Şenlik Cad. No:87, 06290 Keçiören", phone: "0312 361 22 14", hours: "09:00 – 17:00" },
-      { city: "ankara", name: "Etimesgut Şubesi", district: "Etimesgut", address: "Anadolu Bulvarı No:14, 06790 Etimesgut", phone: "0312 244 88 60", hours: "09:00 – 17:00" },
       { city: "izmir", name: "Alsancak Şubesi", district: "Konak", address: "Kordon Boyu No:142, 35220 Alsancak", phone: "0232 464 12 80", hours: "09:00 – 17:00" },
       { city: "izmir", name: "Bornova Şubesi", district: "Bornova", address: "Erzene Mah. Bornova Merkez Cad. No:88, 35040 Bornova", phone: "0232 342 55 17", hours: "09:00 – 17:00" },
-      { city: "izmir", name: "Karşıyaka Şubesi", district: "Karşıyaka", address: "Cumhuriyet Bulvarı No:76, 35540 Karşıyaka", phone: "0232 369 44 33", hours: "09:00 – 17:00" },
-      { city: "izmir", name: "Bayraklı Şubesi", district: "Bayraklı", address: "Mansuroğlu Mah. 1593 Sok. No:14, 35530 Bayraklı", phone: "0232 441 90 26", hours: "09:00 – 17:00" },
-      { city: "izmir", name: "Buca Şubesi", district: "Buca", address: "Şirinyer Mah. 182 Sok. No:9, 35390 Buca", phone: "0232 452 71 08", hours: "09:00 – 17:00" },
-      { city: "izmir", name: "Gaziemir Şubesi", district: "Gaziemir", address: "Akçay Cad. No:61, 35410 Gaziemir", phone: "0232 251 38 42", hours: "09:00 – 17:00" }
+      { city: "izmir", name: "Karşıyaka Şubesi", district: "Karşıyaka", address: "Cumhuriyet Bulvarı No:76, 35540 Karşıyaka", phone: "0232 369 44 33", hours: "09:00 – 17:00" }
     ];
 
     const cityLabels = { istanbul: "İstanbul", ankara: "Ankara", izmir: "İzmir" };
-    let activeCity = "istanbul";
 
-    function renderStats(filter) {
-      const list = filter === "all" ? BRANCHES : BRANCHES.filter((b) => b.city === filter);
-      const counts = {
-        istanbul: BRANCHES.filter((b) => b.city === "istanbul").length,
-        ankara: BRANCHES.filter((b) => b.city === "ankara").length,
-        izmir: BRANCHES.filter((b) => b.city === "izmir").length,
-      };
-      document.getElementById("stats").innerHTML = `
-        <div class="stat"><strong>${list.length}</strong><span>Listelenen şube</span></div>
-        <div class="stat"><strong>${counts.istanbul}</strong><span>İstanbul</span></div>
-        <div class="stat"><strong>${counts.ankara}</strong><span>Ankara</span></div>
-        <div class="stat"><strong>${counts.izmir}</strong><span>İzmir</span></div>
-      `;
-    }
-
-    function renderBranches(filter) {
-      const list = filter === "all" ? BRANCHES : BRANCHES.filter((b) => b.city === filter);
+    function renderBranches(city) {
+      const list = city === "all" ? BRANCHES : BRANCHES.filter((b) => b.city === city);
       document.getElementById("branches").innerHTML = list.map((b) => `
         <article class="branch-card">
-          <h3>${b.name}</h3>
-          <div class="district">${cityLabels[b.city]} / ${b.district}</div>
-          <p><span class="label">Adres: </span>${b.address}</p>
-          <p><span class="label">Telefon: </span><a href="tel:${b.phone.replace(/\s/g, "")}">${b.phone}</a></p>
-          <p><span class="label">Çalışma Saatleri: </span>${b.hours}</p>
+          <h4>${b.name}</h4>
+          <div class="tag">${cityLabels[b.city]} / ${b.district}</div>
+          <p>${b.address}</p>
+          <p><a href="tel:${b.phone.replace(/\s/g, "")}">${b.phone}</a> · ${b.hours}</p>
         </article>
       `).join("");
     }
 
-    function setCity(city) {
-      activeCity = city;
-      document.querySelectorAll("nav a").forEach((a) => {
-        a.classList.toggle("active", a.dataset.city === city);
-      });
-      renderStats(city);
-      renderBranches(city);
-    }
-
-    document.querySelectorAll("nav a").forEach((a) => {
-      a.addEventListener("click", (e) => {
-        e.preventDefault();
-        setCity(a.dataset.city);
+    document.querySelectorAll("#cityTabs button").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("#cityTabs button").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        renderBranches(btn.dataset.city);
       });
     });
 
-    setCity("istanbul");
+    document.querySelectorAll(".faq-q").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const item = btn.closest(".faq-item");
+        const open = item.classList.contains("open");
+        document.querySelectorAll(".faq-item").forEach((i) => i.classList.remove("open"));
+        if (!open) item.classList.add("open");
+        btn.setAttribute("aria-expanded", String(!open));
+      });
+    });
+
+    renderBranches("istanbul");
   </script>
 </body>
 </html>

@@ -11,6 +11,7 @@ import { getClientIp } from "@/lib/request-ip";
 
 async function scheduleMetaLead(
   request: NextRequest,
+  applicantId: string,
   body: {
     phone?: string;
     firstName?: string;
@@ -22,9 +23,11 @@ async function scheduleMetaLead(
     console.warn("[meta-capi] skipped: not offer traffic");
     return;
   }
+  console.log("[meta-capi] sending lead event for applicant", applicantId);
 
   const cookieStore = await cookies();
   const fbc = cookieStore.get("_fbc")?.value;
+  const fbp = cookieStore.get("_fbp")?.value;
 
   const host =
     request.headers.get("x-forwarded-host") ??
@@ -33,8 +36,10 @@ async function scheduleMetaLead(
   const proto = request.headers.get("x-forwarded-proto") ?? "https";
   const eventSourceUrl = host ? `${proto}://${host}/` : `${proto}://localhost/`;
 
+  const eventId = uuidv4();
+
   const send = sendMetaLeadEvent({
-    eventId: uuidv4(),
+    eventId,
     eventSourceUrl,
     ip: getClientIp(request),
     userAgent: request.headers.get("user-agent") ?? "",
@@ -42,13 +47,17 @@ async function scheduleMetaLead(
     firstName: body.firstName ?? "",
     lastName: body.lastName ?? "",
     fbc,
+    fbp,
+    externalId: applicantId,
     value: Number(body.loanAmount) || undefined,
-  }).then((result) => {
-    if (!result.ok) {
-      console.error("[meta-capi] send failed", result.error ?? result);
-    }
-    return result;
-  });
+    }).then((result) => {
+      if (result.ok) {
+        console.log("[meta-capi] lead event sent successfully for", applicantId, "event_id:", eventId);
+      } else {
+        console.error("[meta-capi] send failed", result.error ?? result);
+      }
+      return result;
+    });
 
   try {
     const { getCloudflareContext } = await import("@opennextjs/cloudflare");
@@ -134,7 +143,7 @@ export async function POST(request: NextRequest) {
         new Date().toISOString()
       );
       await scheduleLeadflowPush(applicant.id, request);
-      await scheduleMetaLead(request, body);
+      await scheduleMetaLead(request, applicant.id, body);
     }
 
     const response = NextResponse.json({

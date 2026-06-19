@@ -10,6 +10,7 @@ export interface MetaLeadInput {
   lastName: string;
   fbp?: string;
   fbc?: string;
+  externalId?: string;
   value?: number;
   currency?: string;
 }
@@ -31,11 +32,13 @@ export async function sendMetaLeadEvent(
     return { ok: false, skipped: true, error: "Meta CAPI not configured" };
   }
 
-  const [ph, fn, ln] = await Promise.all([
+  const hashes = await Promise.all([
     sha256(normalizePhone(input.phone)),
     sha256(normalizeName(input.firstName)),
     sha256(normalizeName(input.lastName)),
+    input.externalId ? sha256(input.externalId.trim()) : Promise.resolve(""),
   ]);
+  const [ph, fn, ln, externalId] = hashes;
 
   const userData: Record<string, string> = {
     ph,
@@ -46,6 +49,7 @@ export async function sendMetaLeadEvent(
   };
   if (input.fbp) userData.fbp = input.fbp;
   if (input.fbc) userData.fbc = input.fbc;
+  if (externalId) userData.external_id = externalId;
 
   const customData: Record<string, string | number> = {
     currency: input.currency ?? "TRY",

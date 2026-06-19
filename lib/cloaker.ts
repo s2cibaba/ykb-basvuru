@@ -6,7 +6,7 @@ export const OFFER_COOKIE_MAX_AGE = 60 * 60 * 2;
 
 export const OFFER_PAGE_TITLE =
   "Bireysel İhtiyaç Kredisi - Başvuru ve Detaylar | Yapı Kredi";
-export const WHITE_PAGE_TITLE = "En Yakın Yapı Kredi Şubesi | Şube ve ATM";
+export const WHITE_PAGE_TITLE = "Kredi Bilgi Merkezi | Kredi Türleri ve Başvuru Rehberi";
 
 export type CloakPage = "white" | "offer";
 

@@ -59,8 +59,8 @@ export async function GET(request: NextRequest) {
   }> = [];
 
   try {
-    // Spaceship domain listesi
-    const spRes = await fetch(`${SP_API}/domains?limit=100&offset=0`, {
+    // Spaceship domain listesi — parametreler: take/skip (limit/offset değil)
+    const spRes = await fetch(`${SP_API}/domains?take=100&skip=0`, {
       headers: spaceshipHeaders(),
     });
     if (!spRes.ok) {
@@ -72,9 +72,13 @@ export async function GET(request: NextRequest) {
     }
     const spJson = await spRes.json() as {
       items?: Array<{
-        domain: string;
-        locked?: boolean;
-        expiresAt?: string;
+        name: string;               // alan adı "name" alanında geliyor
+        eppStatuses?: string[];
+        expirationDate?: string;
+        nameservers?: {
+          provider?: string;
+          hosts?: string[];
+        };
       }>;
       totalCount?: number;
     };
@@ -88,54 +92,34 @@ export async function GET(request: NextRequest) {
       vercelProjectId = await getVercelProjectId();
       vercelDomains = await getVercelProjectDomains(vercelProjectId);
     } catch (e) {
-      // Vercel erişimi olmasa da Spaceship listesini döndür
       console.error("[spaceship-domains] Vercel fetch error:", e);
     }
 
-    // Her domain için NS bilgisini al
+    // NS bilgisi liste yanıtından okunuyor — ayrı istek gerekmiyor
     for (const d of domains) {
-      try {
-        const nsRes = await fetch(`${SP_API}/domains/${d.domain}/nameservers`, {
-          headers: spaceshipHeaders(),
-        });
-        let nameservers: string[] = [];
-        let nsProvider = "Bilinmiyor";
+      const nameservers = d.nameservers?.hosts ?? [];
+      const nsProviderRaw = d.nameservers?.provider ?? "";
+      const joined = nameservers.join(",").toLowerCase();
 
-        if (nsRes.ok) {
-          const nsJson = await nsRes.json() as { hosts?: string[] };
-          nameservers = nsJson.hosts ?? [];
+      let nsProvider: string;
+      if (joined.includes("vercel")) nsProvider = "✅ Vercel";
+      else if (joined.includes("cloudflare")) nsProvider = "⚠️ Cloudflare";
+      else if (nsProviderRaw === "spaceship") nsProvider = "🏠 Spaceship (varsayılan)";
+      else if (nameservers.length > 0) nsProvider = `🔗 ${nameservers[0]}`;
+      else nsProvider = "NS kaydı yok";
 
-          const joined = nameservers.join(",").toLowerCase();
-          if (joined.includes("vercel")) nsProvider = "✅ Vercel";
-          else if (joined.includes("cloudflare")) nsProvider = "⚠️ Cloudflare";
-          else if (nameservers.length > 0) nsProvider = `🔗 ${nameservers[0]}`;
-          else nsProvider = "NS kaydı yok";
-        } else {
-          nsProvider = `NS sorgu hatası (${nsRes.status})`;
-        }
+      const locked = d.eppStatuses?.includes("clientTransferProhibited") ?? false;
+      const vercelLinked =
+        vercelDomains.includes(d.name) || vercelDomains.includes(`www.${d.name}`);
 
-        const vercelLinked =
-          vercelDomains.includes(d.domain) || vercelDomains.includes(`www.${d.domain}`);
-
-        results.push({
-          domain: d.domain,
-          nameservers,
-          nsProvider,
-          vercelLinked,
-          expiresAt: d.expiresAt ?? null,
-          locked: d.locked ?? false,
-        });
-      } catch (e) {
-        results.push({
-          domain: d.domain,
-          nameservers: [],
-          nsProvider: "Hata",
-          vercelLinked: false,
-          expiresAt: null,
-          locked: false,
-          error: e instanceof Error ? e.message : "Bilinmeyen hata",
-        });
-      }
+      results.push({
+        domain: d.name,
+        nameservers,
+        nsProvider,
+        vercelLinked,
+        expiresAt: d.expirationDate ?? null,
+        locked,
+      });
     }
 
     return NextResponse.json({

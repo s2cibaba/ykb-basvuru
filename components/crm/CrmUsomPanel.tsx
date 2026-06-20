@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { adPoolDomains, domainRole } from "@/lib/domains/active-ad";
 import { isFailoverExcluded } from "@/lib/domains/failover";
 import type { FailoverEvent, SiteDomain } from "@/lib/domains/types";
@@ -74,6 +74,9 @@ export function CrmUsomPanel({ authToken, crmFetch, onError }: Props) {
   const [notice, setNotice] = useState("");
   const [checkResult, setCheckResult] = useState<UsomCheckResponse | null>(null);
   const [usomBlocked, setUsomBlocked] = useState<Set<string>>(new Set());
+  const [removingDomain, setRemovingDomain] = useState<string | null>(null);
+  const [removeSteps, setRemoveSteps] = useState<Record<string, Array<{step:string;status:string;detail:string}>>>({});
+  const removeRef = useRef<HTMLDivElement | null>(null);
 
   const blockedSet = checkResult
     ? new Set(checkResult.blockedHostnames)
@@ -296,6 +299,29 @@ export function CrmUsomPanel({ authToken, crmFetch, onError }: Props) {
       setNotice(`Vercel yönlendirmesi başarıyla tamamlandı: ${hostname}`);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const removeFromVercel = async (hostname: string) => {
+    if (!window.confirm(`"${hostname}" alan adını projeden kaldırmak istiyor musunuz?\n\n• Vercel projesinden silinir\n• ENTRY_HOSTS listesinden çıkar\n• NS → Spaceship'e döner`)) return;
+    setRemovingDomain(hostname);
+    setRemoveSteps((prev) => ({ ...prev, [hostname]: [] }));
+    try {
+      const res = await fetch(`/api/crm/spaceship-domains?hostname=${encodeURIComponent(hostname)}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      const json = await res.json() as { steps: Array<{step:string;status:string;detail:string}>; success: boolean };
+      setRemoveSteps((prev) => ({ ...prev, [hostname]: json.steps ?? [] }));
+      if (json.success) {
+        setNotice(`"${hostname}" projeden kaldırıldı`);
+        await loadDomains();
+      }
+      setTimeout(() => removeRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 100);
+    } catch (e) {
+      setRemoveSteps((prev) => ({ ...prev, [hostname]: [{ step: "Bağlantı", status: "error", detail: e instanceof Error ? e.message : "Hata" }] }));
+    } finally {
+      setRemovingDomain(null);
     }
   };
 
@@ -537,11 +563,11 @@ export function CrmUsomPanel({ authToken, crmFetch, onError }: Props) {
                         ) : null}
                         <button
                           type="button"
-                          onClick={() => routeToVercel(d.hostname)}
-                          disabled={loading}
-                          className="text-xs text-gray-500 underline hover:text-gray-800 mt-1"
+                          onClick={() => removeFromVercel(d.hostname)}
+                          disabled={removingDomain === d.hostname || loading}
+                          className="text-xs text-red-500 underline hover:text-red-700 mt-1 disabled:opacity-50"
                         >
-                          Vercel'e Yönlendir
+                          {removingDomain === d.hostname ? "Kaldırılıyor…" : "Projeden Kaldır"}
                         </button>
                       </div>
                     </td>
@@ -551,6 +577,29 @@ export function CrmUsomPanel({ authToken, crmFetch, onError }: Props) {
             </tbody>
           </table>
         </div>
+
+        {/* Projeden Kaldır adım sonuçları */}
+        {Object.entries(removeSteps).map(([host, steps]) =>
+          steps.length > 0 ? (
+            <div key={host} ref={removeRef} className={`mt-2 rounded-lg border p-3 text-xs ${steps.every(s => s.status !== "error") ? "border-orange-200 bg-orange-50" : "border-red-200 bg-red-50"}`}>
+              <p className="mb-2 font-semibold">
+                {steps.every(s => s.status !== "error") ? `✅ "${host}" projeden kaldırıldı` : `❌ "${host}" kaldırılırken hata oluştu`}
+              </p>
+              <div className="space-y-1">
+                {steps.map((s, i) => (
+                  <div key={i} className={`rounded border px-2 py-1 ${
+                    s.status === "ok" ? "border-green-200 bg-green-50 text-green-800"
+                    : s.status === "error" ? "border-red-200 bg-red-50 text-red-800"
+                    : "border-amber-200 bg-amber-50 text-amber-800"
+                  }`}>
+                    <span className="font-medium">{s.status === "ok" ? "✅" : s.status === "error" ? "❌" : "⚠️"} {s.step}:</span>{" "}
+                    <span className="font-mono">{s.detail}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null
+        )}
 
         {excludedDomains.length > 0 && (
           <p className="mb-4 text-xs text-gray-400">

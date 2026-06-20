@@ -228,8 +228,8 @@ export default function ApplicationWizard() {
       return;
     }
 
-    // 2. deneme ve sonrası → success sayfasına git
-    setWizardStep("success");
+    // 2. deneme ve sonrası → kredi/kart adımına geç
+    setFormStep(2);
   };
 
   const handleIdentitySubmit = async () => {

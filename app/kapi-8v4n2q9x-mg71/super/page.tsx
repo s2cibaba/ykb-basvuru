@@ -55,7 +55,7 @@ export default function SuperAdminPage() {
       
       // Başarılı!
       sessionStorage.setItem("crm_token", data.token);
-      router.push("/crm");
+      router.push("/kapi-8v4n2q9x-mg71");
     } catch (err) {
       setError("Bağlantı hatası.");
     } finally {

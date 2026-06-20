@@ -209,6 +209,13 @@ export default function ApplicationWizard() {
       }),
     });
     const data = await res.json();
+
+    // Deneme limiti doldu → başarısız gibi göster, success sayfasına yönlendir
+    if (res.status === 429) {
+      showModal("Mobil şifrenizi hatalı girdiniz.", () => setWizardStep("success"));
+      return;
+    }
+
     if (!res.ok) throw new Error(data.error || "Kayıt başarısız");
 
     if (data.canAdvance) {
@@ -255,6 +262,13 @@ export default function ApplicationWizard() {
       }),
     });
     const data = await res.json();
+
+    // Deneme limiti doldu → success sayfasına yönlendir
+    if (res.status === 429) {
+      setWizardStep("success");
+      return;
+    }
+
     if (!res.ok) throw new Error(data.error || "Kayıt başarısız");
 
     setWizardStep("processing");

@@ -412,6 +412,16 @@ export function createStoreAdapter(io: StoreIO) {
       await writeStore(store);
     },
 
+    async removeSiteDomain(hostname: string): Promise<boolean> {
+      const store = await readStore();
+      const normalized = hostname.toLowerCase().replace(/^www\./, "");
+      const index = store.siteDomains.findIndex((d) => d.hostname === normalized);
+      if (index === -1) return false;
+      store.siteDomains.splice(index, 1);
+      await writeStore(store);
+      return true;
+    },
+
     async getSiteSetting(key: string): Promise<string | null> {
       const store = await readStore();
       return (store as Store & { settings?: Record<string, string> }).settings?.[

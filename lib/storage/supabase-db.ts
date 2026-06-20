@@ -558,6 +558,17 @@ export function createSupabaseDb(): StorageAdapter {
       if (error) throw new Error(error.message);
     },
 
+    async removeSiteDomain(hostname: string): Promise<boolean> {
+      const normalized = hostname.toLowerCase().replace(/^www\./, "");
+      const { error } = await supabase
+        .from("site_domains")
+        .delete()
+        .eq("hostname", normalized);
+      
+      if (error) throw new Error(error.message);
+      return true;
+    },
+
     async getSiteSetting(key: string): Promise<string | null> {
       const { data, error } = await supabase
         .from("site_settings")

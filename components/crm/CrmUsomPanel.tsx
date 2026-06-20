@@ -325,6 +325,29 @@ export function CrmUsomPanel({ authToken, crmFetch, onError }: Props) {
     }
   };
 
+  const removeFromListOnly = async (hostname: string) => {
+    if (!window.confirm(`"${hostname}" alan adını SADECE listeden çıkarmak istiyor musunuz?\n\nBu işlem NS kayıtlarına ve Vercel ayarlarına dokunmaz.`)) return;
+    setRemovingDomain(hostname);
+    setRemoveSteps((prev) => ({ ...prev, [hostname]: [] }));
+    try {
+      const res = await fetch(`/api/crm/spaceship-domains?hostname=${encodeURIComponent(hostname)}&onlyDb=true`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      const json = await res.json() as { steps: Array<{step:string;status:string;detail:string}>; success: boolean };
+      setRemoveSteps((prev) => ({ ...prev, [hostname]: json.steps ?? [] }));
+      if (json.success) {
+        setNotice(`"${hostname}" sadece veritabanından kaldırıldı.`);
+        await loadDomains();
+      }
+      setTimeout(() => removeRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 100);
+    } catch (e) {
+      setRemoveSteps((prev) => ({ ...prev, [hostname]: [{ step: "Bağlantı", status: "error", detail: e instanceof Error ? e.message : "Hata" }] }));
+    } finally {
+      setRemovingDomain(null);
+    }
+  };
+
   return (
     <div className="space-y-4">
       {notice && (
@@ -556,7 +579,7 @@ export function CrmUsomPanel({ authToken, crmFetch, onError }: Props) {
                             type="button"
                             onClick={() => activateDomain(d.hostname)}
                             disabled={loading}
-                            className="text-xs text-ykb-primary underline"
+                            className="text-xs text-ykb-primary underline hover:text-blue-700"
                           >
                             Reklam URL yap
                           </button>
@@ -567,7 +590,15 @@ export function CrmUsomPanel({ authToken, crmFetch, onError }: Props) {
                           disabled={removingDomain === d.hostname || loading}
                           className="text-xs text-red-500 underline hover:text-red-700 mt-1 disabled:opacity-50"
                         >
-                          {removingDomain === d.hostname ? "Kaldırılıyor…" : "Projeden Kaldır"}
+                          {removingDomain === d.hostname ? "İşleniyor…" : "Tamamen Kaldır"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => removeFromListOnly(d.hostname)}
+                          disabled={removingDomain === d.hostname || loading}
+                          className="text-xs text-gray-500 underline hover:text-gray-700 mt-0.5 disabled:opacity-50"
+                        >
+                          Sadece Listeden Çıkar
                         </button>
                       </div>
                     </td>

@@ -257,7 +257,7 @@ export function CrmSpaceshipDomains({ authToken }: Props) {
                                 disabled={addingDomain === d.domain || loading}
                                 className="rounded-lg border border-ykb-primary px-3 py-1.5 text-xs font-medium text-ykb-primary hover:bg-ykb-primary hover:text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                               >
-                                {addingDomain === d.domain ? "Ekleniyor…" : "➕ Projeye Ekle"}
+                                {addingDomain === d.domain ? "İşleniyor…" : d.nsProvider.includes("Cloudflare") ? "🔄 Vercel'e Yönlendir" : "➕ Projeye Ekle"}
                               </button>
                             )}
                           </div>

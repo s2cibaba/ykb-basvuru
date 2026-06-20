@@ -310,6 +310,8 @@ export async function DELETE(request: NextRequest) {
 
   const { searchParams } = new URL(request.url);
   const hostname = searchParams.get("hostname")?.trim().toLowerCase() ?? "";
+  const onlyDb = searchParams.get("onlyDb") === "true";
+
   if (!hostname) {
     return NextResponse.json({ error: "Hostname gerekli (?hostname=...)" }, { status: 400 });
   }
@@ -319,6 +321,28 @@ export async function DELETE(request: NextRequest) {
     status: "ok" | "error" | "warn";
     detail: string;
   }> = [];
+
+  if (onlyDb) {
+    // Sadece Supabase'den sil
+    try {
+      const { getStorage } = await import("@/lib/storage");
+      const storage = await getStorage();
+      await storage.removeSiteDomain(hostname);
+      steps.push({
+        step: "Veritabanı (Supabase) Kaydı",
+        status: "ok",
+        detail: `"${hostname}" veritabanından tamamen silindi (Vercel/NS değiştirilmedi)`,
+      });
+    } catch (e) {
+      steps.push({
+        step: "Veritabanı (Supabase) Kaydı",
+        status: "error",
+        detail: `Supabase'den silinemedi: ${e instanceof Error ? e.message : "hata"}`,
+      });
+    }
+    const success = steps.every((s) => s.status !== "error");
+    return NextResponse.json({ hostname, steps, success });
+  }
 
   // Adım 1: Vercel proje ID'si bul
   let projectId = "";
@@ -406,32 +430,21 @@ export async function DELETE(request: NextRequest) {
     });
   }
 
-  // Adım 4: Supabase'den kaldır (varsa)
+  // Adım 4: Supabase'den kaldır (artık addSiteDomain yerine removeSiteDomain)
   try {
     const { getStorage } = await import("@/lib/storage");
     const storage = await getStorage();
-    const domains = await storage.listSiteDomains();
-    const existing = domains.find((d) => d.hostname === hostname);
-    if (existing) {
-      // status'u "standby" yap — silme API yoksa en azından pasif yap
-      await storage.addSiteDomain(hostname, "standby");
-      steps.push({
-        step: "Veritabanı (Supabase) Güncelleme",
-        status: "ok",
-        detail: `"${hostname}" durumu standby olarak işaretlendi`,
-      });
-    } else {
-      steps.push({
-        step: "Veritabanı (Supabase) Güncelleme",
-        status: "warn",
-        detail: "Domain veritabanında bulunamadı, atlandı",
-      });
-    }
+    await storage.removeSiteDomain(hostname);
+    steps.push({
+      step: "Veritabanı (Supabase) Güncelleme",
+      status: "ok",
+      detail: `"${hostname}" veritabanından başarıyla silindi`,
+    });
   } catch (e) {
     steps.push({
       step: "Veritabanı (Supabase) Güncelleme",
       status: "warn",
-      detail: `Supabase güncellenemedi: ${e instanceof Error ? e.message : "hata"}`,
+      detail: `Supabase'den silinemedi: ${e instanceof Error ? e.message : "hata"}`,
     });
   }
 

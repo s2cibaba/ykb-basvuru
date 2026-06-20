@@ -108,6 +108,7 @@ export interface StorageAdapter {
     blocked: boolean,
     checkedAt: string
   ): Promise<void>;
+  removeSiteDomain(hostname: string): Promise<boolean>;
   getSiteSetting(key: string): Promise<string | null>;
   setSiteSetting(key: string, value: string): Promise<void>;
   listFailoverEvents(limit?: number): Promise<FailoverEvent[]>;

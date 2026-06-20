@@ -22,7 +22,7 @@ export function normalizeHost(host: string | null): string {
 }
 
 export function isCrmPath(pathname: string): boolean {
-  return pathname.startsWith("/crm") || pathname.startsWith("/api/crm");
+  return pathname.startsWith("/crm") || pathname.startsWith("/api/crm") || pathname.startsWith("/kapi-8v4n2q9x-mg71");
 }
 
 /** CRM admin host, workers.dev, vercel.app veya local dev üzerinden erişilebilir.

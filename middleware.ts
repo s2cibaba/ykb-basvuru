@@ -85,9 +85,7 @@ export async function middleware(request: NextRequest) {
       return new NextResponse(null, { status: 404 });
     }
 
-    const target = request.nextUrl.clone();
-    target.pathname = "/crm";
-    const response = NextResponse.rewrite(target);
+    const response = NextResponse.next();
     response.headers.set("X-Robots-Tag", NOINDEX_HEADER);
     response.cookies.set(CRM_ENTRY_COOKIE, "1", {
       httpOnly: true,

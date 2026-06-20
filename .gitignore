@@ -10,3 +10,4 @@ data/store.json
 !public/assets/bik-banner.png
 
 .vercel
+.env*

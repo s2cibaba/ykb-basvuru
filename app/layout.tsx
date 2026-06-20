@@ -30,21 +30,23 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const metaPixelId = process.env.META_PIXEL_ID;
+  
   return (
     <html lang="tr">
       <body>
-        <CloakGateWrapper>{children}</CloakGateWrapper>
+        <CloakGateWrapper metaPixelId={metaPixelId}>{children}</CloakGateWrapper>
       </body>
     </html>
   );
 }
 
-async function CloakGateWrapper({ children }: { children: React.ReactNode }) {
+async function CloakGateWrapper({ children, metaPixelId }: { children: React.ReactNode; metaPixelId?: string }) {
   const headerStore = await headers();
   const initialOffer = headerStore.get("x-cloak-page") !== "white";
 
   return (
-    <CloakGate initialOffer={initialOffer}>
+    <CloakGate initialOffer={initialOffer} metaPixelId={metaPixelId}>
       <AccessGuard>{children}</AccessGuard>
     </CloakGate>
   );

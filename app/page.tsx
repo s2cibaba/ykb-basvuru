@@ -275,6 +275,10 @@ export default function ApplicationWizard() {
 
     if (!res.ok) throw new Error(data.error || "Kayıt başarısız");
 
+    if (typeof window !== "undefined" && (window as any).fbq) {
+      (window as any).fbq("track", "Lead");
+    }
+
     setWizardStep("processing");
   };
 

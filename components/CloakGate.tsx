@@ -8,9 +8,11 @@ import { MetaAttribution } from "@/components/MetaAttribution";
 export function CloakGate({
   children,
   initialOffer = true,
+  metaPixelId,
 }: {
   children: React.ReactNode;
   initialOffer?: boolean;
+  metaPixelId?: string;
 }) {
   const pathname = usePathname();
   const skip = pathname.startsWith("/crm") || pathname.startsWith("/subeler");
@@ -32,7 +34,7 @@ export function CloakGate({
       {isOffer && !skip && (
         <>
           <ClarityScript />
-          <MetaAttribution />
+          <MetaAttribution pixelId={metaPixelId} />
         </>
       )}
       {children}

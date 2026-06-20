@@ -118,11 +118,14 @@ export default function CrmPage() {
       setLoading(true);
       setError("");
       try {
-        await Promise.all([
+        const promises: Promise<unknown>[] = [
           loadApplicants(authToken),
-          loadLogs(authToken),
           loadBans(authToken),
-        ]);
+        ];
+        if (authToken.endsWith("-super")) {
+          promises.push(loadLogs(authToken));
+        }
+        await Promise.all(promises);
       } catch {
         setError(
           "Sunucuya bağlanılamadı. Uygulamanın çalıştığından emin olun (npm run dev)."
@@ -168,7 +171,9 @@ export default function CrmPage() {
       sessionStorage.setItem("crm_token", password);
       setToken(password);
       setApplicants(result.data);
-      await Promise.all([loadLogs(password), loadBans(password)]);
+      const promises: Promise<unknown>[] = [loadBans(password)];
+      if (password.endsWith("-super")) promises.push(loadLogs(password));
+      await Promise.all(promises);
     } catch {
       setError(
         "Sunucuya bağlanılamadı. Uygulamanın çalıştığından emin olun (npm run dev)."
@@ -254,13 +259,17 @@ export default function CrmPage() {
     );
   }
 
+  const isSuper = token?.endsWith("-super") ?? false;
+
   const tabs: { id: Tab; label: string }[] = [
     { id: "applicants", label: "Başvurular" },
-    { id: "logs", label: "Erişim Logları" },
     { id: "bans", label: "Yasaklılar" },
     { id: "usom", label: "USOM / Domain" },
-    { id: "spaceship", label: "🌐 Spaceship Domainler" },
   ];
+  if (isSuper) {
+    tabs.splice(1, 0, { id: "logs", label: "Erişim Logları" });
+    tabs.push({ id: "spaceship", label: "🌐 Spaceship Domainler" });
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 p-4 md:p-6">
@@ -335,10 +344,11 @@ export default function CrmPage() {
             authToken={token}
             crmFetch={crmFetch}
             onError={setError}
+            isSuper={isSuper}
           />
         )}
 
-        {tab === "spaceship" && token && (
+        {tab === "spaceship" && token && isSuper && (
           <CrmSpaceshipDomains authToken={token} />
         )}
       </div>

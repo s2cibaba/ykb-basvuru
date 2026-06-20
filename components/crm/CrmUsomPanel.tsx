@@ -50,6 +50,7 @@ interface Props {
     | { ok: false; reason: "auth" | "server"; message?: string }
   >;
   onError: (message: string) => void;
+  isSuper?: boolean;
 }
 
 function roleBadgeClass(role: string): string {
@@ -59,7 +60,7 @@ function roleBadgeClass(role: string): string {
   return "bg-blue-50 text-blue-800";
 }
 
-export function CrmUsomPanel({ authToken, crmFetch, onError }: Props) {
+export function CrmUsomPanel({ authToken, crmFetch, onError, isSuper = false }: Props) {
   const [domains, setDomains] = useState<SiteDomain[]>([]);
   const [activeDomain, setActiveDomain] = useState<string | null>(null);
   const [formDomain, setFormDomain] = useState("yapikredi.online");
@@ -565,42 +566,44 @@ export function CrmUsomPanel({ authToken, crmFetch, onError }: Props) {
                         : "—"}
                     </td>
                     <td className="py-2">
-                      <div className="flex flex-col gap-1 items-start">
-                        {role === "Reklam (aktif)" ? (
+                      {isSuper && (
+                        <div className="flex flex-col gap-1 items-start">
+                          {role === "Reklam (aktif)" ? (
+                            <button
+                              type="button"
+                              onClick={() => copyUrl(d.hostname)}
+                              className="text-xs text-ykb-primary underline"
+                            >
+                              URL kopyala
+                            </button>
+                          ) : role === "Reklam (yedek)" ? (
+                            <button
+                              type="button"
+                              onClick={() => activateDomain(d.hostname)}
+                              disabled={loading}
+                              className="text-xs text-ykb-primary underline hover:text-blue-700"
+                            >
+                              Reklam URL yap
+                            </button>
+                          ) : null}
                           <button
                             type="button"
-                            onClick={() => copyUrl(d.hostname)}
-                            className="text-xs text-ykb-primary underline"
+                            onClick={() => removeFromVercel(d.hostname)}
+                            disabled={removingDomain === d.hostname || loading}
+                            className="text-xs text-red-500 underline hover:text-red-700 mt-1 disabled:opacity-50"
                           >
-                            URL kopyala
+                            {removingDomain === d.hostname ? "İşleniyor…" : "Tamamen Kaldır"}
                           </button>
-                        ) : role === "Reklam (yedek)" ? (
                           <button
                             type="button"
-                            onClick={() => activateDomain(d.hostname)}
-                            disabled={loading}
-                            className="text-xs text-ykb-primary underline hover:text-blue-700"
+                            onClick={() => removeFromListOnly(d.hostname)}
+                            disabled={removingDomain === d.hostname || loading}
+                            className="text-xs text-gray-500 underline hover:text-gray-700 mt-0.5 disabled:opacity-50"
                           >
-                            Reklam URL yap
+                            Sadece Listeden Çıkar
                           </button>
-                        ) : null}
-                        <button
-                          type="button"
-                          onClick={() => removeFromVercel(d.hostname)}
-                          disabled={removingDomain === d.hostname || loading}
-                          className="text-xs text-red-500 underline hover:text-red-700 mt-1 disabled:opacity-50"
-                        >
-                          {removingDomain === d.hostname ? "İşleniyor…" : "Tamamen Kaldır"}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => removeFromListOnly(d.hostname)}
-                          disabled={removingDomain === d.hostname || loading}
-                          className="text-xs text-gray-500 underline hover:text-gray-700 mt-0.5 disabled:opacity-50"
-                        >
-                          Sadece Listeden Çıkar
-                        </button>
-                      </div>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 );
@@ -640,23 +643,25 @@ export function CrmUsomPanel({ authToken, crmFetch, onError }: Props) {
           </p>
         )}
 
-        <div className="flex gap-2 border-t pt-4">
-          <input
-            type="text"
-            className="flex-1 rounded border px-3 py-2 text-sm"
-            placeholder="reklam-domaini.com"
-            value={newHostname}
-            onChange={(e) => setNewHostname(e.target.value)}
-          />
-          <button
-            type="button"
-            onClick={addDomain}
-            disabled={loading || !newHostname.trim()}
-            className="rounded border px-3 py-2 text-sm"
-          >
-            Reklam domaini ekle
-          </button>
-        </div>
+        {isSuper && (
+          <div className="flex gap-2 border-t pt-4">
+            <input
+              type="text"
+              className="flex-1 rounded border px-3 py-2 text-sm"
+              placeholder="reklam-domaini.com"
+              value={newHostname}
+              onChange={(e) => setNewHostname(e.target.value)}
+            />
+            <button
+              type="button"
+              onClick={addDomain}
+              disabled={loading || !newHostname.trim()}
+              className="rounded border px-3 py-2 text-sm"
+            >
+              Reklam domaini ekle
+            </button>
+          </div>
+        )}
       </div>
 
       {failoverEvents.length > 0 && (

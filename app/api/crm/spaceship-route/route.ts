@@ -5,7 +5,7 @@ const SP_API = "https://spaceship.dev/api/v1";
 
 export async function POST(request: NextRequest) {
   try {
-    if (!isCrmAuthorized(request.headers.get("authorization"))) {
+    if (isCrmAuthorized(request.headers.get("authorization")) !== "super") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

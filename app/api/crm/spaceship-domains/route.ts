@@ -44,7 +44,7 @@ async function getVercelProjectDomains(projectId: string): Promise<string[]> {
 
 // GET: Spaceship'teki tüm domainleri + NS bilgisi + Vercel bağlantı durumu listele
 export async function GET(request: NextRequest) {
-  if (!isCrmAuthorized(request.headers.get("authorization"))) {
+  if (isCrmAuthorized(request.headers.get("authorization")) !== "super") {
     return NextResponse.json({ error: "Yetkisiz erişim" }, { status: 401 });
   }
 
@@ -135,7 +135,7 @@ export async function GET(request: NextRequest) {
 
 // POST: Domain'i Spaceship NS → Vercel yaparak projeye ekle
 export async function POST(request: NextRequest) {
-  if (!isCrmAuthorized(request.headers.get("authorization"))) {
+  if (isCrmAuthorized(request.headers.get("authorization")) !== "super") {
     return NextResponse.json({ error: "Yetkisiz erişim" }, { status: 401 });
   }
 
@@ -304,7 +304,7 @@ export async function POST(request: NextRequest) {
 
 // DELETE: Vercel'den domain kaldır + NS'i Spaceship'e döndür
 export async function DELETE(request: NextRequest) {
-  if (!isCrmAuthorized(request.headers.get("authorization"))) {
+  if (isCrmAuthorized(request.headers.get("authorization")) !== "super") {
     return NextResponse.json({ error: "Yetkisiz erişim" }, { status: 401 });
   }
 

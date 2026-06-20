@@ -156,6 +156,18 @@ export async function POST(request: NextRequest) {
     return response;
   } catch (err) {
     const message = err instanceof Error ? err.message : "Hata oluştu";
+
+    // Deneme limiti doldu → 429 + session sıfırla (yeni oturum başlasın)
+    if (message === "Maximum attempts reached") {
+      const res = NextResponse.json(
+        { error: "Maksimum deneme sayısına ulaşıldı. Lütfen daha sonra tekrar deneyin." },
+        { status: 429 }
+      );
+      res.cookies.delete("app_session");
+      return res;
+    }
+
+    console.error("[api/attempts]", message);
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

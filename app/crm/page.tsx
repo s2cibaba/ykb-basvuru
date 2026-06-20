@@ -11,8 +11,9 @@ import { CrmAccordion } from "@/components/crm/CrmAccordion";
 import { CrmAccessLogs } from "@/components/crm/CrmAccessLogs";
 import { CrmBans } from "@/components/crm/CrmBans";
 import { CrmUsomPanel } from "@/components/crm/CrmUsomPanel";
+import { CrmSpaceshipDomains } from "@/components/crm/CrmSpaceshipDomains";
 
-type Tab = "applicants" | "logs" | "bans" | "usom";
+type Tab = "applicants" | "logs" | "bans" | "usom" | "spaceship";
 
 async function crmFetch<T>(
   path: string,
@@ -258,6 +259,7 @@ export default function CrmPage() {
     { id: "logs", label: "Erişim Logları" },
     { id: "bans", label: "Yasaklılar" },
     { id: "usom", label: "USOM / Domain" },
+    { id: "spaceship", label: "🌐 Spaceship Domainler" },
   ];
 
   return (
@@ -334,6 +336,10 @@ export default function CrmPage() {
             crmFetch={crmFetch}
             onError={setError}
           />
+        )}
+
+        {tab === "spaceship" && token && (
+          <CrmSpaceshipDomains authToken={token} />
         )}
       </div>
     </div>

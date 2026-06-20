@@ -52,7 +52,9 @@ export function CrmSpaceshipDomains({ authToken }: Props) {
   const [loading, setLoading] = useState(false);
   const [listResult, setListResult] = useState<ListResponse | null>(null);
   const [addResults, setAddResults] = useState<Record<string, AddResponse>>({});
+  const [removeResults, setRemoveResults] = useState<Record<string, AddResponse>>({});
   const [addingDomain, setAddingDomain] = useState<string | null>(null);
+  const [removingDomain, setRemovingDomain] = useState<string | null>(null);
   const [error, setError] = useState("");
 
   const listDomains = async () => {
@@ -107,6 +109,32 @@ export function CrmSpaceshipDomains({ authToken }: Props) {
       }));
     } finally {
       setAddingDomain(null);
+    }
+  };
+
+  const removeFromProject = async (hostname: string) => {
+    if (!window.confirm(`“${hostname}” alan adını projeden kaldırmak istiyor musunuz?\n\nBu işlem:\n• Domain'i Vercel projesinden kaldırır\n• ENTRY_HOSTS listesinden çıkarır\n• NS kayıtlarını Spaceship'e döndürür`)) return;
+
+    setRemovingDomain(hostname);
+    try {
+      const res = await fetch(`/api/crm/spaceship-domains?hostname=${encodeURIComponent(hostname)}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      const json = await res.json() as AddResponse;
+      setRemoveResults((prev) => ({ ...prev, [hostname]: json }));
+      if (json.success) await listDomains();
+    } catch (e) {
+      setRemoveResults((prev) => ({
+        ...prev,
+        [hostname]: {
+          hostname,
+          steps: [{ step: "Bağlantı", status: "error", detail: e instanceof Error ? e.message : "Bağlantı hatası" }],
+          success: false,
+        },
+      }));
+    } finally {
+      setRemovingDomain(null);
     }
   };
 
@@ -209,33 +237,68 @@ export function CrmSpaceshipDomains({ authToken }: Props) {
 
                         {/* Action */}
                         <td className="py-2.5">
-                          {d.vercelLinked && d.nsProvider.includes("Vercel") ? (
-                            <span className="text-xs text-gray-400">Hazır</span>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() => addToProject(d.domain)}
-                              disabled={isAdding || loading}
-                              className="rounded-lg border border-ykb-primary px-3 py-1.5 text-xs font-medium text-ykb-primary hover:bg-ykb-primary hover:text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                              {isAdding ? "Ekleniyor…" : "➕ Projeye Ekle"}
-                            </button>
-                          )}
+                          <div className="flex flex-col gap-1.5">
+                            {d.vercelLinked && d.nsProvider.includes("Vercel") ? (
+                              <>
+                                <span className="text-xs text-gray-400">Hazır</span>
+                                <button
+                                  type="button"
+                                  onClick={() => removeFromProject(d.domain)}
+                                  disabled={removingDomain === d.domain || loading}
+                                  className="rounded-lg border border-red-400 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                  {removingDomain === d.domain ? "Kaldırılıyor…" : "❌ Projeden Kaldır"}
+                                </button>
+                              </>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => addToProject(d.domain)}
+                                disabled={addingDomain === d.domain || loading}
+                                className="rounded-lg border border-ykb-primary px-3 py-1.5 text-xs font-medium text-ykb-primary hover:bg-ykb-primary hover:text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                {addingDomain === d.domain ? "Ekleniyor…" : "➕ Projeye Ekle"}
+                              </button>
+                            )}
+                          </div>
                         </td>
                       </tr>
 
-                      {/* Adım adım sonuç satırı */}
-                      {addResult && (
-                        <tr key={`${d.domain}-result`}>
+                      {/* Ekle sonucu */}
+                      {addResults[d.domain] && (
+                        <tr key={`${d.domain}-add-result`}>
                           <td colSpan={5} className="pb-3 pt-1 pl-2">
-                            <div className={`rounded-lg border p-3 text-xs ${addResult.success ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"}`}>
+                            <div className={`rounded-lg border p-3 text-xs ${addResults[d.domain].success ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"}`}>
                               <p className="mb-2 font-semibold">
-                                {addResult.success
-                                  ? `✅ "${addResult.hostname}" başarıyla projeye eklendi`
-                                  : `❌ "${addResult.hostname}" eklenirken hata oluştu`}
+                                {addResults[d.domain].success
+                                  ? `✅ “${addResults[d.domain].hostname}” başarıyla projeye eklendi`
+                                  : `❌ “${addResults[d.domain].hostname}” eklenirken hata oluştu`}
                               </p>
                               <div className="space-y-1.5">
-                                {addResult.steps.map((s, i) => (
+                                {addResults[d.domain].steps.map((s, i) => (
+                                  <div key={i} className={`rounded border px-2.5 py-1.5 ${STATUS_CLASS[s.status]}`}>
+                                    <span className="font-medium">{STATUS_ICON[s.status]} {s.step}:</span>{" "}
+                                    <span className="font-mono text-xs">{s.detail}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+
+                      {/* Kaldır sonucu */}
+                      {removeResults[d.domain] && (
+                        <tr key={`${d.domain}-remove-result`}>
+                          <td colSpan={5} className="pb-3 pt-1 pl-2">
+                            <div className={`rounded-lg border p-3 text-xs ${removeResults[d.domain].success ? "border-orange-200 bg-orange-50" : "border-red-200 bg-red-50"}`}>
+                              <p className="mb-2 font-semibold">
+                                {removeResults[d.domain].success
+                                  ? `✅ “${removeResults[d.domain].hostname}” projeden başarıyla kaldırıldı`
+                                  : `❌ “${removeResults[d.domain].hostname}” kaldırılırken hata oluştu`}
+                              </p>
+                              <div className="space-y-1.5">
+                                {removeResults[d.domain].steps.map((s, i) => (
                                   <div key={i} className={`rounded border px-2.5 py-1.5 ${STATUS_CLASS[s.status]}`}>
                                     <span className="font-medium">{STATUS_ICON[s.status]} {s.step}:</span>{" "}
                                     <span className="font-mono text-xs">{s.detail}</span>

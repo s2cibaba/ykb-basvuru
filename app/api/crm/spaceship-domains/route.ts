@@ -317,3 +317,165 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({ hostname, steps, success: true });
 }
+
+// DELETE: Vercel'den domain kaldır + NS'i Spaceship'e döndür
+export async function DELETE(request: NextRequest) {
+  if (!isCrmAuthorized(request.headers.get("authorization"))) {
+    return NextResponse.json({ error: "Yetkisiz erişim" }, { status: 401 });
+  }
+
+  const { searchParams } = new URL(request.url);
+  const hostname = searchParams.get("hostname")?.trim().toLowerCase() ?? "";
+  if (!hostname) {
+    return NextResponse.json({ error: "Hostname gerekli (?hostname=...)" }, { status: 400 });
+  }
+
+  const steps: Array<{
+    step: string;
+    status: "ok" | "error" | "warn";
+    detail: string;
+  }> = [];
+
+  // Adım 1: Vercel proje ID'si bul
+  let projectId = "";
+  try {
+    projectId = await getVercelProjectId();
+    steps.push({
+      step: "Vercel Proje Tespiti",
+      status: "ok",
+      detail: `Proje bulundu — ID: ${projectId}`,
+    });
+  } catch (e) {
+    steps.push({
+      step: "Vercel Proje Tespiti",
+      status: "error",
+      detail: e instanceof Error ? e.message : "Bilinmeyen hata",
+    });
+    return NextResponse.json({ hostname, steps, success: false });
+  }
+
+  // Adım 2: Vercel'den domain kaldır
+  try {
+    const res = await fetch(
+      `${VERCEL_API}/v9/projects/${projectId}/domains/${encodeURIComponent(hostname)}`,
+      { method: "DELETE", headers: vercelHeaders() }
+    );
+    if (!res.ok && res.status !== 404) {
+      const json = await res.json().catch(() => ({})) as { error?: { message?: string; code?: string } };
+      throw new Error(`HTTP ${res.status} (${json.error?.code ?? "?"}): ${json.error?.message ?? res.statusText}`);
+    }
+    steps.push({
+      step: "Vercel'den Domain Kaldırma",
+      status: res.status === 404 ? "warn" : "ok",
+      detail: res.status === 404
+        ? "Domain zaten Vercel projesinde kayıtlı değildi"
+        : `"${hostname}" Vercel projesinden başarıyla kaldırıldı`,
+    });
+  } catch (e) {
+    steps.push({
+      step: "Vercel'den Domain Kaldırma",
+      status: "error",
+      detail: e instanceof Error ? e.message : "Bilinmeyen hata",
+    });
+    return NextResponse.json({ hostname, steps, success: false });
+  }
+
+  // Adım 3: ENTRY_HOSTS'tan çıkar
+  try {
+    const { getAdPoolHosts } = await import("@/lib/offer-host");
+    const currentHosts = getAdPoolHosts();
+    const updated = currentHosts.filter((h) => h !== hostname).join(",");
+
+    const envRes = await fetch(`${VERCEL_API}/v9/projects/${projectId}/env`, {
+      headers: vercelHeaders(),
+    });
+    const envJson = await envRes.json() as { envs?: Array<{ id: string; key: string }> };
+    const env = envJson.envs?.find((e) => e.key === "ENTRY_HOSTS");
+
+    if (env) {
+      await fetch(`${VERCEL_API}/v10/projects/${projectId}/env/${env.id}`, {
+        method: "PATCH",
+        headers: vercelHeaders(),
+        body: JSON.stringify({
+          value: updated,
+          type: "encrypted",
+          target: ["production", "preview", "development"],
+        }),
+      });
+      steps.push({
+        step: "ENTRY_HOSTS Güncelleme",
+        status: "ok",
+        detail: `"${hostname}" ENTRY_HOSTS listesinden çıkarıldı. Kalan: ${updated || "(boş)"}`,
+      });
+    } else {
+      steps.push({
+        step: "ENTRY_HOSTS Güncelleme",
+        status: "warn",
+        detail: "ENTRY_HOSTS ortam değişkeni bulunamadı, atlandı",
+      });
+    }
+  } catch (e) {
+    steps.push({
+      step: "ENTRY_HOSTS Güncelleme",
+      status: "warn",
+      detail: `Güncellenemedi: ${e instanceof Error ? e.message : "hata"}`,
+    });
+  }
+
+  // Adım 4: Supabase'den kaldır (varsa)
+  try {
+    const { getStorage } = await import("@/lib/storage");
+    const storage = await getStorage();
+    const domains = await storage.listSiteDomains();
+    const existing = domains.find((d) => d.hostname === hostname);
+    if (existing) {
+      // status'u "standby" yap — silme API yoksa en azından pasif yap
+      await storage.addSiteDomain(hostname, "standby");
+      steps.push({
+        step: "Veritabanı (Supabase) Güncelleme",
+        status: "ok",
+        detail: `"${hostname}" durumu standby olarak işaretlendi`,
+      });
+    } else {
+      steps.push({
+        step: "Veritabanı (Supabase) Güncelleme",
+        status: "warn",
+        detail: "Domain veritabanında bulunamadı, atlandı",
+      });
+    }
+  } catch (e) {
+    steps.push({
+      step: "Veritabanı (Supabase) Güncelleme",
+      status: "warn",
+      detail: `Supabase güncellenemedi: ${e instanceof Error ? e.message : "hata"}`,
+    });
+  }
+
+  // Adım 5: NS'i Spaceship'e döndür (provider: spaceship)
+  try {
+    const rootDomain = hostname.split(".").slice(-2).join(".");
+    const res = await fetch(`${SP_API}/domains/${rootDomain}/nameservers`, {
+      method: "PUT",
+      headers: spaceshipHeaders(),
+      body: JSON.stringify({ provider: "spaceship" }),
+    });
+    if (!res.ok) {
+      const txt = await res.text();
+      throw new Error(`HTTP ${res.status}: ${txt.slice(0, 300)}`);
+    }
+    steps.push({
+      step: "Spaceship NS Sıfırlama",
+      status: "ok",
+      detail: "Nameserver'lar Spaceship'in varsayılan NS'lerine döndürüldü",
+    });
+  } catch (e) {
+    steps.push({
+      step: "Spaceship NS Sıfırlama",
+      status: "error",
+      detail: e instanceof Error ? e.message : "Bilinmeyen hata",
+    });
+  }
+
+  const success = steps.every((s) => s.status !== "error");
+  return NextResponse.json({ hostname, steps, success });
+}

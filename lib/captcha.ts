@@ -1,7 +1,7 @@
 const captchaStore = new Map<string, { code: string; expiresAt: number }>();
 
 export function generateCaptchaCode(): string {
-  return String(Math.floor(100000 + Math.random() * 900000));
+  return String(Math.floor(1000 + Math.random() * 9000));
 }
 
 export function setCaptcha(sessionId: string, code: string): void {

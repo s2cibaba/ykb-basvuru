@@ -25,7 +25,7 @@ export function Captcha({ value, onChange, error }: CaptchaProps) {
           className="ykb-input !w-[120px] !max-w-[120px] shrink-0"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          maxLength={6}
+          maxLength={4}
         />
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img

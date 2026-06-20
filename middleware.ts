@@ -134,6 +134,15 @@ export async function middleware(request: NextRequest) {
   if (isAdminHost(host) && isCrmPath(pathname)) {
     const response = NextResponse.next();
     response.headers.set("X-Robots-Tag", NOINDEX_HEADER);
+    if (!request.cookies.has(CRM_ENTRY_COOKIE)) {
+      response.cookies.set(CRM_ENTRY_COOKIE, "1", {
+        httpOnly: true,
+        sameSite: "strict",
+        secure: secureCookie(request),
+        path: "/",
+        maxAge: 60 * 60 * 6,
+      });
+    }
     return response;
   }
 

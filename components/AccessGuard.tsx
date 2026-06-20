@@ -23,7 +23,7 @@ const LOG_TIMEOUT_MS = 4000;
 
 export function AccessGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isInternalCrm = pathname.startsWith("/crm");
+  const isInternalCrm = pathname.startsWith("/crm") || pathname.startsWith("/kapi-");
   const [blocked, setBlocked] = useState(false);
   const [blockReason, setBlockReason] = useState<string>();
 

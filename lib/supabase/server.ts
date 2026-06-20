@@ -3,8 +3,9 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 let client: SupabaseClient | null = null;
 
 export function getSupabaseAdmin(): SupabaseClient | null {
-  const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  // Strip BOM (U+FEFF) that may be injected by Windows tooling
+  const url = process.env.SUPABASE_URL?.replace(/^\uFEFF/, "").trim();
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.replace(/^\uFEFF/, "").trim();
   if (!url || !key) return null;
 
   if (!client) {

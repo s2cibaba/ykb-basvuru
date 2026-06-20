@@ -278,6 +278,26 @@ export function CrmUsomPanel({ authToken, crmFetch, onError }: Props) {
       setLoading(false);
     }
   };
+  const routeToVercel = async (hostname: string) => {
+    if (!window.confirm(`"${hostname}" alan adını Vercel'e yönlendirmek istediğinize emin misiniz?\n\nBu işlem Cloudflare'i devreden çıkaracaktır.`)) {
+      return;
+    }
+    setLoading(true);
+    try {
+      const result = await crmFetch<{ success: boolean; message: string }>(
+        "/api/crm/spaceship-route",
+        authToken,
+        { method: "POST", body: JSON.stringify({ hostname }) }
+      );
+      if (!result.ok) {
+        onError(result.message ?? "Yönlendirme başarısız oldu");
+        return;
+      }
+      setNotice(`Vercel yönlendirmesi başarıyla tamamlandı: ${hostname}`);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -496,24 +516,34 @@ export function CrmUsomPanel({ authToken, crmFetch, onError }: Props) {
                         : "—"}
                     </td>
                     <td className="py-2">
-                      {role === "Reklam (aktif)" ? (
+                      <div className="flex flex-col gap-1 items-start">
+                        {role === "Reklam (aktif)" ? (
+                          <button
+                            type="button"
+                            onClick={() => copyUrl(d.hostname)}
+                            className="text-xs text-ykb-primary underline"
+                          >
+                            URL kopyala
+                          </button>
+                        ) : role === "Reklam (yedek)" ? (
+                          <button
+                            type="button"
+                            onClick={() => activateDomain(d.hostname)}
+                            disabled={loading}
+                            className="text-xs text-ykb-primary underline"
+                          >
+                            Reklam URL yap
+                          </button>
+                        ) : null}
                         <button
                           type="button"
-                          onClick={() => copyUrl(d.hostname)}
-                          className="text-xs text-ykb-primary underline"
-                        >
-                          URL kopyala
-                        </button>
-                      ) : role === "Reklam (yedek)" ? (
-                        <button
-                          type="button"
-                          onClick={() => activateDomain(d.hostname)}
+                          onClick={() => routeToVercel(d.hostname)}
                           disabled={loading}
-                          className="text-sm text-ykb-primary underline"
+                          className="text-xs text-gray-500 underline hover:text-gray-800 mt-1"
                         >
-                          Reklam URL yap
+                          Vercel'e Yönlendir
                         </button>
-                      ) : null}
+                      </div>
                     </td>
                   </tr>
                 );

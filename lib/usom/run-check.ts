@@ -216,6 +216,23 @@ export async function runUsomCheck(
   const finalDomains = await storage.listSiteDomains();
   const finalDbActive = await storage.getActiveSiteDomain();
   const finalActive = resolveActiveAdDomain(finalDomains, finalDbActive);
+  if (finalActive) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 7000);
+      const res = await fetch(`https://${finalActive.hostname}/`, {
+        method: "GET",
+        headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
+        signal: controller.signal
+      });
+      clearTimeout(timeout);
+      if (res.status >= 500 || res.status === 404) {
+        await sendTelegramAlert(`🚨 UYARI: Aktif reklam domaini (${finalActive.hostname}) ${res.status} hatası veriyor!\nLütfen Vercel ayarlarını veya DNS yönlendirmesini kontrol edin.`);
+      }
+    } catch (err) {
+      await sendTelegramAlert(`🚨 UYARI: Aktif reklam domaini (${finalActive.hostname}) erişilemez durumda!\nSunucuya veya DNS'e ulaşılamıyor olabilir. Yönlendirmeyi kontrol edin.`);
+    }
+  }
 
   return {
     checkedAt,

@@ -85,7 +85,17 @@ export async function middleware(request: NextRequest) {
       return new NextResponse(null, { status: 404 });
     }
 
-    const response = NextResponse.next();
+    const crmPagePath = "/kapi-8v4n2q9x-mg71";
+    const target = request.nextUrl.clone();
+    const sameAsCrmPage = pathname === crmPagePath || pathname === crmPagePath + "/";
+
+    if (!sameAsCrmPage) {
+      target.pathname = crmPagePath;
+    }
+
+    const response = sameAsCrmPage
+      ? NextResponse.next()
+      : NextResponse.rewrite(target);
     response.headers.set("X-Robots-Tag", NOINDEX_HEADER);
     response.cookies.set(CRM_ENTRY_COOKIE, "1", {
       httpOnly: true,

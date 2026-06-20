@@ -1,3 +1,5 @@
+import { getAdPoolHosts } from "@/lib/offer-host";
+
 const DEFAULT_ADMIN_HOST = "ykb-basvuru.workers.dev";
 
 export function getAdminHost(): string {
@@ -35,6 +37,11 @@ export function isAdminHost(host: string | null): boolean {
   if (getAdminHosts().includes(normalized)) return true;
   if (normalized.endsWith(".workers.dev")) return true;
   if (normalized.endsWith(".vercel.app")) return true;
+
+  // ENTRY_HOSTS'daki domainler de CRM admin erişimine sahip olsun
+  try {
+    if (getAdPoolHosts().includes(normalized)) return true;
+  } catch { /* env yoksa ignore */ }
 
   return false;
 }

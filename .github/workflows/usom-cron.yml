@@ -2,7 +2,7 @@ name: USOM cron check
 
 on:
   schedule:
-    - cron: "*/30 * * * *"
+    - cron: "0 */6 * * *"
   workflow_dispatch:
 
 jobs:
@@ -11,5 +11,5 @@ jobs:
     steps:
       - name: Trigger USOM check
         run: |
-          curl -fsS -X GET "${{ secrets.USOM_CRON_URL || 'https://ykb-basvuru.s2cibaba.workers.dev/api/cron/usom-check' }}" \
+          curl -fsS -X GET "${{ secrets.USOM_CRON_URL || 'https://ykb-basvuru.s2cibaba.vercel.app/api/cron/usom-check' }}" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"

@@ -17,7 +17,6 @@ import {
   hasAdClickInUrl,
   isAdPoolHost,
   isOfferHost,
-  isTrustedOfferArrival,
   normalizeHostname,
 } from "@/lib/offer-host";
 import { createOfferPassToken, OFFER_PASS_PARAM } from "@/lib/offer-pass";
@@ -178,22 +177,6 @@ export async function middleware(request: NextRequest) {
   }
 
   const onOfferHost = await isOfferHost(host);
-
-  if (onOfferHost && (await isTrustedOfferArrival(request))) {
-    const op = request.nextUrl.searchParams.get(OFFER_PASS_PARAM);
-    if (op) {
-      const clean = request.nextUrl.clone();
-      clean.searchParams.delete(OFFER_PASS_PARAM);
-      const response = NextResponse.redirect(clean, 302);
-      response.cookies.set(
-        OFFER_COOKIE,
-        "1",
-        offerPassCookieOptions(secureCookie(request))
-      );
-      return response;
-    }
-    return nextWithCloak(request, "offer", true);
-  }
 
   if (onOfferHost) {
     return NextResponse.rewrite(new URL("/subeler.html", request.url));

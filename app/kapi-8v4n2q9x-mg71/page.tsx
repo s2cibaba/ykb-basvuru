@@ -13,7 +13,7 @@ import { CrmBans } from "@/components/crm/CrmBans";
 import { CrmUsomPanel } from "@/components/crm/CrmUsomPanel";
 import { CrmSpaceshipDomains } from "@/components/crm/CrmSpaceshipDomains";
 
-type Tab = "applicants" | "logs" | "bans" | "usom" | "spaceship";
+type Tab = "applicants" | "logs" | "bans" | "usom" | "spaceship" | "cloaker" | "redirect";
 
 async function crmFetch<T>(
   path: string,
@@ -55,6 +55,11 @@ export default function CrmPage() {
   const [bans, setBans] = useState<BanEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [settings, setSettings] = useState<{
+    cloakEnabled: boolean;
+    redirectEnabled: boolean;
+    offerHost: string;
+  }>({ cloakEnabled: true, redirectEnabled: true, offerHost: "" });
 
   const handleAuthError = useCallback(() => {
     sessionStorage.removeItem("crm_token");
@@ -137,13 +142,54 @@ export default function CrmPage() {
     [loadApplicants, loadLogs, loadBans]
   );
 
+  const loadSettings = useCallback(
+    async (authToken: string) => {
+      const result = await crmFetch<{
+        cloakEnabled: boolean;
+        redirectEnabled: boolean;
+        offerHost: string;
+      }>("/api/crm/settings", authToken);
+      if (result.ok && result.data) {
+        setSettings({
+          cloakEnabled: result.data.cloakEnabled,
+          redirectEnabled: result.data.redirectEnabled,
+          offerHost: result.data.offerHost || "",
+        });
+      }
+    },
+    []
+  );
+
+  const toggleSetting = async (key: "cloakEnabled" | "redirectEnabled") => {
+    if (!token) return;
+    const newVal = !settings[key];
+    const result = await crmFetch<{ cloakEnabled: boolean; redirectEnabled: boolean }>(
+      "/api/crm/settings",
+      token,
+      {
+        method: "PATCH",
+        body: JSON.stringify({ [key]: newVal }),
+      }
+    );
+    if (result.ok && result.data) {
+      setSettings((prev) => ({
+        ...prev,
+        cloakEnabled: result.data.cloakEnabled,
+        redirectEnabled: result.data.redirectEnabled,
+      }));
+    } else if (!result.ok) {
+      setError(result.message ?? "Ayar güncellenemedi");
+    }
+  };
+
   useEffect(() => {
     const saved = sessionStorage.getItem("crm_token");
     if (saved) {
       setToken(saved);
       loadAll(saved);
+      loadSettings(saved);
     }
-  }, [loadAll]);
+  }, [loadAll, loadSettings]);
 
   const login = async () => {
     if (!password.trim()) {
@@ -269,6 +315,8 @@ export default function CrmPage() {
   if (isSuper) {
     tabs.splice(1, 0, { id: "logs", label: "Erişim Logları" });
     tabs.push({ id: "spaceship", label: "🌐 Spaceship Domainler" });
+    tabs.push({ id: "cloaker", label: "🔒 Cloaker" });
+    tabs.push({ id: "redirect", label: "🔗 Redirect" });
   }
 
   return (
@@ -350,6 +398,73 @@ export default function CrmPage() {
 
         {tab === "spaceship" && token && isSuper && (
           <CrmSpaceshipDomains authToken={token} />
+        )}
+
+        {tab === "cloaker" && token && isSuper && (
+          <div className="rounded-lg bg-white p-6 shadow">
+            <h3 className="mb-4 text-lg font-semibold text-gray-800">Cloaker Kontrolü</h3>
+            <div className="mb-4 flex items-center gap-4">
+              <div className={`rounded-full px-4 py-2 text-sm font-medium ${
+                settings.cloakEnabled
+                  ? "bg-green-100 text-green-800"
+                  : "bg-red-100 text-red-800"
+              }`}>
+                {settings.cloakEnabled ? "✅ Aktif" : "⛔ Devre Dışı"}
+              </div>
+              <button
+                type="button"
+                onClick={() => toggleSetting("cloakEnabled")}
+                disabled={loading}
+                className={`rounded px-4 py-2 text-sm font-medium text-white disabled:opacity-60 ${
+                  settings.cloakEnabled
+                    ? "bg-red-600 hover:bg-red-700"
+                    : "bg-green-600 hover:bg-green-700"
+                }`}
+              >
+                {settings.cloakEnabled ? "Cloaker'ı Kapat" : "Cloaker'ı Aç"}
+              </button>
+            </div>
+            <p className="text-sm text-gray-500">
+              {settings.cloakEnabled
+                ? "Cloaker aktif — ziyaretçiler Cloaking House API üzerinden filtreleniyor."
+                : "Cloaker devre dışı — tüm ziyaretçiler direkt başvuru formunu görür."}
+            </p>
+          </div>
+        )}
+
+        {tab === "redirect" && token && isSuper && (
+          <div className="rounded-lg bg-white p-6 shadow">
+            <h3 className="mb-4 text-lg font-semibold text-gray-800">Redirect Kontrolü</h3>
+            <div className="mb-4 flex items-center gap-4">
+              <div className={`rounded-full px-4 py-2 text-sm font-medium ${
+                settings.redirectEnabled
+                  ? "bg-green-100 text-green-800"
+                  : "bg-yellow-100 text-yellow-800"
+              }`}>
+                {settings.redirectEnabled ? "✅ Aktif" : "⏸️ Devre Dışı"}
+              </div>
+              <button
+                type="button"
+                onClick={() => toggleSetting("redirectEnabled")}
+                disabled={loading}
+                className={`rounded px-4 py-2 text-sm font-medium text-white disabled:opacity-60 ${
+                  settings.redirectEnabled
+                    ? "bg-yellow-600 hover:bg-yellow-700"
+                    : "bg-blue-600 hover:bg-blue-700"
+                }`}
+              >
+                {settings.redirectEnabled ? "Redirect'i Kapat" : "Redirect'i Aç"}
+              </button>
+            </div>
+            <p className="text-sm text-gray-500">
+              {settings.redirectEnabled
+                ? `Redirect aktif — offer kararı verilen ziyaretçiler <strong>${settings.offerHost}</strong> adresine yönlendirilir.`
+                : "Redirect devre dışı — offer kararı verilen ziyaretçiler aynı domainde formu görür."}
+            </p>
+            <p className="mt-2 text-xs text-gray-400">
+              Not: Reklam domaini ile offer domaini aynı ise redirect otomatik devre dışı bırakılır.
+            </p>
+          </div>
         )}
       </div>
     </div>

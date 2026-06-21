@@ -2,5 +2,15 @@
   "framework": "nextjs",
   "buildCommand": "next build",
   "installCommand": "npm install",
-  "regions": ["fra1"]
+  "regions": ["fra1"],
+  "crons": [
+    {
+      "path": "/api/cron/usom-check",
+      "schedule": "*/30 * * * *"
+    },
+    {
+      "path": "/api/cron/health-check",
+      "schedule": "*/15 * * * *"
+    }
+  ]
 }

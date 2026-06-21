@@ -5,12 +5,8 @@
   "regions": ["fra1"],
   "crons": [
     {
-      "path": "/api/cron/usom-check",
-      "schedule": "*/30 * * * *"
-    },
-    {
       "path": "/api/cron/health-check",
-      "schedule": "*/15 * * * *"
+      "schedule": "0 0 * * *"
     }
   ]
 }
